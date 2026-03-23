@@ -17,7 +17,7 @@ exports.handler = async (event) => {
     });
 
     await transporter.sendMail({
-      from: `"Canal de Denuncias 🔐" <${process.env.EMAIL_USER}>`,
+      from: process.env.EMAIL_USER,
       to,
       subject,
       text,
