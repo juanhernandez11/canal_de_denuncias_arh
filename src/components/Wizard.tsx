@@ -13,12 +13,11 @@ const steps = [
 ];
 
 const TIPOS_NOTIFICACION = [
-  "Fraude y corrupción", "Acoso laboral o sexual", "Daños contra el Medio ambiente",
-  "Incumplimiento de legislación o normativa interna", "Discriminación o violación de los Derechos Humanos",
-  "Trato irrespetuoso, desigual o injusto", "Actuación no ética en el desempeño profesional",
-  "Violación de la Propiedad Intelectual o Industrial", "Actuaciones irregulares contra la libre competencia",
-  "Vulneración en el Tratamiento de los datos", "Otros", "Repetida", "Ilegible", "Comercial"
-];
+  "Actos de corrupción/fraude", "Escenarios de conflicto de interés", "Incumplimiento al código de ética/políticas y normativa interna",
+  "Independencia profesional/relación inapropiada con clientes", "Regalos, hopitalidad o beneficios indebidos",
+  "Uso indebido de información/divulgación de información confidencial", "Descriminación o trato desigual",
+  "Acoso laboral o sexual/hostigamiento", "Violaciones a derechos humanos",
+  "Incumplimiento de leyes o regulaciones", "Actuación irregular de libre competencia/prácticas desleales", "relación indebida con proveedores", "Otros"];
 
 const SEDES = ["Sede Tehuacán", "Puebla (Torre Elementa)"];
 
