@@ -8,3 +8,157 @@
 body {
   @apply bg-slate-50 text-slate-900 font-sans;
 }
+
+/* ── Interlineado dinámico ── */
+html {
+  --acc-line-height: 1.5;
+}
+p, label, input, select, textarea, span, li, h2, h3 {
+  line-height: var(--acc-line-height) !important;
+}
+
+/* ── Contraste oscuro ── */
+html.acc-contrast-dark body { background: #0f172a !important; }
+html.acc-contrast-dark .bg-white,
+html.acc-contrast-dark .bg-slate-50 { background: #1e293b !important; }
+html.acc-contrast-dark p,
+html.acc-contrast-dark label,
+html.acc-contrast-dark h2,
+html.acc-contrast-dark h3,
+html.acc-contrast-dark span,
+html.acc-contrast-dark li { color: #f8fafc !important; }
+html.acc-contrast-dark input,
+html.acc-contrast-dark select,
+html.acc-contrast-dark textarea {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  border-color: #facc15 !important;
+}
+html.acc-contrast-dark .border-slate-300 { border-color: #facc15 !important; }
+html.acc-contrast-dark .text-slate-400,
+html.acc-contrast-dark .text-slate-500 { color: #cbd5e1 !important; }
+
+/* ── Contraste claro ── */
+html.acc-contrast-light body { background: #ffffff !important; }
+html.acc-contrast-light .bg-white,
+html.acc-contrast-light .bg-slate-50 { background: #ffffff !important; }
+html.acc-contrast-light p,
+html.acc-contrast-light label,
+html.acc-contrast-light h2,
+html.acc-contrast-light h3,
+html.acc-contrast-light span,
+html.acc-contrast-light li { color: #000000 !important; }
+html.acc-contrast-light input,
+html.acc-contrast-light select,
+html.acc-contrast-light textarea {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-color: #000000 !important;
+}
+
+/* ── Espaciado amplio ── */
+html.acc-espaciado p,
+html.acc-espaciado label,
+html.acc-espaciado input,
+html.acc-espaciado select,
+html.acc-espaciado textarea,
+html.acc-espaciado span,
+html.acc-espaciado li {
+  letter-spacing: 0.06em !important;
+  word-spacing: 0.1em !important;
+}
+
+/* ── Cursor grande ── */
+html.acc-cursor,
+html.acc-cursor * {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpath d='M8 2 L8 32 L15 25 L20 36 L24 34 L19 23 L28 23 Z' fill='black' stroke='white' stroke-width='2'/%3E%3C/svg%3E") 0 0, auto !important;
+}
+
+/* ── Resaltar botones y links ── */
+html.acc-links button:not([role="switch"]) {
+  outline: 3px solid #facc15 !important;
+  outline-offset: 3px !important;
+}
+html.acc-links a {
+  text-decoration: underline !important;
+  font-weight: 700 !important;
+  color: #1d4ed8 !important;
+}
+
+/* ── Guía de foco ── */
+html.acc-foco *:focus {
+  outline: 4px solid #f97316 !important;
+  outline-offset: 4px !important;
+  border-radius: 4px !important;
+}
+
+/* ── Escala de grises ── */
+html.acc-grises {
+  filter: grayscale(100%);
+}
+
+/* ── Modo lectura ── */
+html.acc-lectura body {
+  background: #fffdf5 !important;
+}
+html.acc-lectura .bg-white,
+html.acc-lectura .bg-slate-50 {
+  background: #fffdf5 !important;
+  box-shadow: none !important;
+}
+html.acc-lectura [class*="bg-[url"] {
+  background-image: none !important;
+  background-color: #fffdf5 !important;
+}
+html.acc-lectura p,
+html.acc-lectura label,
+html.acc-lectura h2,
+html.acc-lectura h3,
+html.acc-lectura span,
+html.acc-lectura li {
+  color: #1a1a1a !important;
+  font-family: Georgia, serif !important;
+}
+
+/* ── Sin animaciones ── */
+html.acc-sin-anim *,
+html.acc-sin-anim *::before,
+html.acc-sin-anim *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* ── Resaltado hover ── */
+html.acc-hover p:hover,
+html.acc-hover label:hover,
+html.acc-hover li:hover,
+html.acc-hover span:hover {
+  background: #fef08a !important;
+  border-radius: 3px;
+}
+
+/* ── Fuente para dislexia ── */
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/fonts/OpenDyslexic-Regular.otf') format('opentype');
+  font-weight: normal;
+}
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/fonts/OpenDyslexic-Bold.otf') format('opentype');
+  font-weight: bold;
+}
+
+html.acc-dislexia,
+html.acc-dislexia p,
+html.acc-dislexia label,
+html.acc-dislexia input,
+html.acc-dislexia select,
+html.acc-dislexia textarea,
+html.acc-dislexia button,
+html.acc-dislexia span,
+html.acc-dislexia h2,
+html.acc-dislexia h3,
+html.acc-dislexia li {
+  font-family: 'OpenDyslexic', sans-serif !important;
+}

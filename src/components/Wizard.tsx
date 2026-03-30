@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { LayoutGrid, User, Calendar, Eye, Paperclip, CheckSquare } from 'lucide-react';
 import Button from './shared/Button';
 import { Toaster, toast } from 'react-hot-toast';
+import AccesibilidadPanel from './AccesibilidadPanel';
 
 const steps = [
   { icon: LayoutGrid, label: 'Inicio' },
@@ -365,6 +366,8 @@ export default function Wizard() {
           }} className="bg-slate-900 text-white px-8 py-2 rounded-none hover:bg-slate-800">{step === 6 ? 'ENVIAR' : 'SIGUIENTE →'}</Button>
         </div>
       </div>
+
+      <AccesibilidadPanel />
     </div>
   );
 }
