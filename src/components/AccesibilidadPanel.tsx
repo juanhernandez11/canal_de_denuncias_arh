@@ -1,5 +1,27 @@
 import { useState, useEffect, useRef } from 'react';
 
+// ── Speech API ──────────────────────────────────────────────
+let pausado = false;
+
+export const hablar = (texto: string, velocidad = 1, volumen = 1, vozNombre = '') => {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  pausado = false;
+  const u = new SpeechSynthesisUtterance(texto);
+  u.lang = 'es-MX';
+  u.rate = velocidad;
+  u.volume = volumen;
+  if (vozNombre) {
+    const voz = window.speechSynthesis.getVoices().find(v => v.name === vozNombre);
+    if (voz) u.voice = voz;
+  }
+  window.speechSynthesis.speak(u);
+};
+
+export const lectorActivo = (): boolean =>
+  !!(localStorage.getItem('a11y') && JSON.parse(localStorage.getItem('a11y')!).lectorVoz);
+
+// ── Defaults ────────────────────────────────────────────────
 const DEFAULTS = {
   tamano: 16,
   interlineado: 1.5,
@@ -14,36 +36,30 @@ const DEFAULTS = {
   resaltadoHover: false,
   mascaraLectura: false,
   fuenteDislexia: false,
+  lectorVoz: false,
+  velocidadVoz: 1,
+  volumenVoz: 1,
+  vozSeleccionada: '',
   posicion: 'derecha' as 'derecha' | 'izquierda',
 };
 
 type Prefs = typeof DEFAULTS;
 
-const PERFILES: { label: string; emoji: string; desc: string; prefs: Partial<Prefs> }[] = [
-  {
-    label: 'Visual',
-    emoji: '👁',
-    desc: 'Alto contraste y texto grande',
-    prefs: { contraste: 'oscuro', tamano: 20, guiaFoco: true, resaltarLinks: true },
-  },
-  {
-    label: 'Motor',
-    emoji: '🖐',
-    desc: 'Cursor grande y foco visible',
-    prefs: { cursorGrande: true, guiaFoco: true, tamano: 18, sinAnimaciones: true },
-  },
-  {
-    label: 'Cognitivo',
-    emoji: '🧠',
-    desc: 'Lectura fácil y sin distracciones',
-    prefs: { modoLectura: true, fuenteDislexia: true, interlineado: 2, espaciado: true, sinAnimaciones: true },
-  },
-  {
-    label: 'Dislexia',
-    emoji: '📖',
-    desc: 'Fuente y espaciado especial',
-    prefs: { fuenteDislexia: true, espaciado: true, interlineado: 2.25, mascaraLectura: true },
-  },
+const TEXTOS_PASOS: Record<number, string> = {
+  1: 'Paso 1 de 6. ¿Qué hecho quiere notificar? Seleccione el centro y el tipo de notificación.',
+  2: 'Paso 2 de 6. Datos de identificación. Elija si desea identificarse o realizar la denuncia de forma anónima.',
+  3: 'Paso 3 de 6. Datos de la notificación. Ingrese la fecha de la incidencia y una descripción detallada.',
+  4: 'Paso 4 de 6. Personas involucradas. Puede agregar de forma opcional a testigos o personas involucradas.',
+  5: 'Paso 5 de 6. Archivos. Puede adjuntar evidencias o documentos relacionados.',
+  6: 'Paso 6 de 6. Finalizar notificación. Revise los términos y envíe su denuncia.',
+};
+
+const PERFILES = [
+  { label: 'Visual',    emoji: '👁',  desc: 'Alto contraste y texto grande',      prefs: { contraste: 'oscuro' as const, tamano: 20, guiaFoco: true, resaltarLinks: true } },
+  { label: 'Motor',     emoji: '🖐',  desc: 'Cursor grande y foco visible',        prefs: { cursorGrande: true, guiaFoco: true, tamano: 18, sinAnimaciones: true } },
+  { label: 'Cognitivo', emoji: '🧠',  desc: 'Lectura fácil y sin distracciones',   prefs: { modoLectura: true, fuenteDislexia: true, interlineado: 2, espaciado: true, sinAnimaciones: true } },
+  { label: 'Dislexia',  emoji: '📖',  desc: 'Fuente y espaciado especial',         prefs: { fuenteDislexia: true, espaciado: true, interlineado: 2.25, mascaraLectura: true } },
+  { label: 'Ciego',     emoji: '🔊',  desc: 'Lector de voz activado',              prefs: { lectorVoz: true, guiaFoco: true, tamano: 18 } },
 ];
 
 const load = (): Prefs => {
@@ -53,22 +69,33 @@ const load = (): Prefs => {
 
 const CONTRASTES = { normal: '', oscuro: 'acc-contrast-dark', claro: 'acc-contrast-light' };
 
-export default function AccesibilidadPanel() {
+export default function AccesibilidadPanel({ step }: { step?: number }) {
   const [open, setOpen] = useState(false);
   const [prefs, setPrefs] = useState<Prefs>(load);
   const [maskY, setMaskY] = useState(0);
+  const [pausadoUI, setPausadoUI] = useState(false);
+  const [voces, setVoces] = useState<SpeechSynthesisVoice[]>([]);
   const maskRef = useRef<((e: MouseEvent) => void) | null>(null);
 
+  // Cargar voces disponibles
+  useEffect(() => {
+    const cargar = () => {
+      const vs = window.speechSynthesis?.getVoices().filter(v => v.lang.startsWith('es')) || [];
+      setVoces(vs);
+    };
+    cargar();
+    window.speechSynthesis?.addEventListener('voiceschanged', cargar);
+    return () => window.speechSynthesis?.removeEventListener('voiceschanged', cargar);
+  }, []);
+
+  // Aplicar clases CSS
   useEffect(() => {
     localStorage.setItem('a11y', JSON.stringify(prefs));
     const cl = document.documentElement.classList;
-
     document.documentElement.style.fontSize = `${prefs.tamano}px`;
     document.documentElement.style.setProperty('--acc-line-height', `${prefs.interlineado}`);
-
     Object.values(CONTRASTES).forEach(c => c && cl.remove(c));
     if (CONTRASTES[prefs.contraste]) cl.add(CONTRASTES[prefs.contraste]);
-
     cl.toggle('acc-espaciado', prefs.espaciado);
     cl.toggle('acc-cursor', prefs.cursorGrande);
     cl.toggle('acc-links', prefs.resaltarLinks);
@@ -78,15 +105,37 @@ export default function AccesibilidadPanel() {
     cl.toggle('acc-lectura', prefs.modoLectura);
     cl.toggle('acc-hover', prefs.resaltadoHover);
     cl.toggle('acc-dislexia', prefs.fuenteDislexia);
+    cl.toggle('acc-lector', prefs.lectorVoz);
   }, [prefs]);
+
+  // Narrar al cambiar de paso
+  useEffect(() => {
+    if (prefs.lectorVoz && step && TEXTOS_PASOS[step])
+      hablar(TEXTOS_PASOS[step], prefs.velocidadVoz, prefs.volumenVoz, prefs.vozSeleccionada);
+  }, [step]);
+
+  // Narrar campos al hacer foco
+  useEffect(() => {
+    if (!prefs.lectorVoz) { window.speechSynthesis?.cancel(); return; }
+    const handler = (e: FocusEvent) => {
+      const el = e.target as HTMLElement;
+      const texto = el.getAttribute('aria-label') ||
+        el.getAttribute('placeholder') ||
+        document.querySelector(`label[for="${el.id}"]`)?.textContent ||
+        el.closest('label')?.textContent?.trim();
+      if (texto) hablar(texto, prefs.velocidadVoz, prefs.volumenVoz, prefs.vozSeleccionada);
+    };
+    document.addEventListener('focusin', handler);
+    return () => document.removeEventListener('focusin', handler);
+  }, [prefs.lectorVoz, prefs.velocidadVoz, prefs.volumenVoz, prefs.vozSeleccionada]);
 
   // Máscara de lectura
   useEffect(() => {
     if (maskRef.current) window.removeEventListener('mousemove', maskRef.current);
     if (prefs.mascaraLectura) {
-      const handler = (e: MouseEvent) => setMaskY(e.clientY);
-      maskRef.current = handler;
-      window.addEventListener('mousemove', handler);
+      const h = (e: MouseEvent) => setMaskY(e.clientY);
+      maskRef.current = h;
+      window.addEventListener('mousemove', h);
     }
     return () => { if (maskRef.current) window.removeEventListener('mousemove', maskRef.current); };
   }, [prefs.mascaraLectura]);
@@ -102,8 +151,16 @@ export default function AccesibilidadPanel() {
 
   const reset = () => {
     setPrefs(DEFAULTS);
+    window.speechSynthesis?.cancel();
+    setPausadoUI(false);
     document.documentElement.style.fontSize = `${DEFAULTS.tamano}px`;
     document.documentElement.style.setProperty('--acc-line-height', `${DEFAULTS.interlineado}`);
+  };
+
+  const togglePausa = () => {
+    if (!window.speechSynthesis) return;
+    if (pausadoUI) { window.speechSynthesis.resume(); pausado = false; setPausadoUI(false); }
+    else { window.speechSynthesis.pause(); pausado = true; setPausadoUI(true); }
   };
 
   const posClass = prefs.posicion === 'izquierda' ? 'left-6' : 'right-6';
@@ -112,9 +169,7 @@ export default function AccesibilidadPanel() {
   const Toggle = ({ k, label }: { k: keyof Prefs; label: string }) => (
     <div className="flex justify-between items-center">
       <span>{label}</span>
-      <button
-        role="switch"
-        aria-checked={prefs[k] as boolean}
+      <button role="switch" aria-checked={prefs[k] as boolean}
         onClick={() => set(k, !prefs[k] as any)}
         className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${prefs[k] ? 'bg-green-500' : 'bg-slate-300'}`}
       >
@@ -125,57 +180,33 @@ export default function AccesibilidadPanel() {
 
   return (
     <>
-      {/* Máscara de lectura */}
       {prefs.mascaraLectura && (
-        <div
-          className="fixed inset-0 z-40 pointer-events-none"
-          style={{
-            background: `linear-gradient(
-              to bottom,
-              rgba(0,0,0,0.75) 0px,
-              rgba(0,0,0,0.75) ${maskY - 28}px,
-              transparent ${maskY - 28}px,
-              transparent ${maskY + 28}px,
-              rgba(0,0,0,0.75) ${maskY + 28}px,
-              rgba(0,0,0,0.75) 100%
-            )`
-          }}
-        />
+        <div className="fixed inset-0 z-40 pointer-events-none" style={{
+          background: `linear-gradient(to bottom,rgba(0,0,0,0.75) 0px,rgba(0,0,0,0.75) ${maskY - 28}px,transparent ${maskY - 28}px,transparent ${maskY + 28}px,rgba(0,0,0,0.75) ${maskY + 28}px,rgba(0,0,0,0.75) 100%)`
+        }} />
       )}
 
-      {/* Botón flotante */}
-      <button
-        onClick={() => setOpen(!open)}
-        title="Opciones de accesibilidad"
-        aria-label="Abrir panel de accesibilidad"
+      <button onClick={() => setOpen(!open)} title="Opciones de accesibilidad" aria-label="Abrir panel de accesibilidad"
         className={`fixed bottom-6 ${posClass} z-50 w-14 h-14 rounded-full shadow-xl flex items-center justify-center text-2xl bg-slate-900 text-yellow-400 hover:bg-slate-700 transition-colors`}
-      >
-        👁️
-      </button>
+      >🧍</button>
 
-      {/* Panel */}
       {open && (
-        <div
-          role="dialog"
-          aria-label="Panel de accesibilidad"
+        <div role="dialog" aria-label="Panel de accesibilidad"
           className={`fixed bottom-24 ${panelPos} z-50 w-80 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden`}
         >
           <div className="bg-slate-900 text-white px-4 py-3 flex justify-between items-center">
-            <span className="font-semibold text-sm">♿ Accesibilidad</span>
+            <span className="font-semibold text-sm">Accesibilidad</span>
             <button onClick={() => setOpen(false)} aria-label="Cerrar panel" className="text-slate-400 hover:text-white text-lg leading-none">✕</button>
           </div>
 
           <div className="p-4 space-y-5 text-sm text-slate-700 max-h-[75vh] overflow-y-auto">
 
-            {/* Perfiles rápidos */}
+            {/* Perfiles */}
             <div>
               <p className="font-semibold mb-2">Perfiles rápidos</p>
               <div className="grid grid-cols-2 gap-2">
                 {PERFILES.map(p => (
-                  <button
-                    key={p.label}
-                    onClick={() => applyProfile(p.prefs)}
-                    title={p.desc}
+                  <button key={p.label} onClick={() => applyProfile(p.prefs)} title={p.desc}
                     className="flex flex-col items-center gap-1 py-2 px-1 rounded border border-slate-200 hover:bg-slate-50 hover:border-slate-400 transition-colors text-center"
                   >
                     <span className="text-xl">{p.emoji}</span>
@@ -188,7 +219,7 @@ export default function AccesibilidadPanel() {
 
             <hr className="border-slate-200" />
 
-            {/* Tamaño de texto */}
+            {/* Tamaño */}
             <div>
               <div className="flex justify-between items-center mb-2">
                 <p className="font-semibold">Tamaño de texto</p>
@@ -238,7 +269,59 @@ export default function AccesibilidadPanel() {
               <Toggle k="escalaGrises" label="⬛ Escala de grises" />
               <Toggle k="modoLectura" label="📄 Modo lectura" />
               <Toggle k="sinAnimaciones" label="⏸ Sin animaciones" />
+              <Toggle k="lectorVoz" label="🔊 Lector de voz" />
             </div>
+
+            {/* Controles de voz */}
+            {prefs.lectorVoz && (
+              <div className="space-y-3 bg-slate-50 rounded-lg p-3">
+                {/* Selector de voz */}
+                {voces.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium mb-1">Voz</p>
+                    <select value={prefs.vozSeleccionada} onChange={e => set('vozSeleccionada', e.target.value)}
+                      className="w-full text-xs p-1.5 border border-slate-300 rounded"
+                    >
+                      <option value="">Voz por defecto</option>
+                      {voces.map(v => <option key={v.name} value={v.name}>{v.name} ({v.lang})</option>)}
+                    </select>
+                  </div>
+                )}
+                {/* Velocidad */}
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-xs font-medium">Velocidad</span>
+                    <span className="text-xs text-slate-500">{prefs.velocidadVoz}x</span>
+                  </div>
+                  <input type="range" min={0.5} max={2} step={0.25} value={prefs.velocidadVoz}
+                    onChange={e => set('velocidadVoz', Number(e.target.value))} className="w-full accent-slate-900" />
+                </div>
+                {/* Volumen */}
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-xs font-medium">Volumen</span>
+                    <span className="text-xs text-slate-500">{Math.round(prefs.volumenVoz * 100)}%</span>
+                  </div>
+                  <input type="range" min={0} max={1} step={0.1} value={prefs.volumenVoz}
+                    onChange={e => set('volumenVoz', Number(e.target.value))} className="w-full accent-slate-900" />
+                </div>
+                {/* Botones */}
+                <div className="flex gap-2">
+                  <button onClick={() => hablar(step ? TEXTOS_PASOS[step] : 'Canal Ético de Denuncias', prefs.velocidadVoz, prefs.volumenVoz, prefs.vozSeleccionada)}
+                    className="flex-1 py-1.5 rounded border border-slate-300 text-xs font-medium hover:bg-slate-100">
+                    ▶ Repetir
+                  </button>
+                  <button onClick={togglePausa}
+                    className={`flex-1 py-1.5 rounded border text-xs font-medium transition-colors ${pausadoUI ? 'bg-yellow-100 border-yellow-400 text-yellow-700' : 'border-slate-300 hover:bg-slate-100'}`}>
+                    {pausadoUI ? '▶ Reanudar' : '⏸ Pausar'}
+                  </button>
+                  <button onClick={() => window.speechSynthesis?.cancel()}
+                    className="flex-1 py-1.5 rounded border border-slate-300 text-xs font-medium hover:bg-slate-100">
+                    ⏹ Detener
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Posición */}
             <div>

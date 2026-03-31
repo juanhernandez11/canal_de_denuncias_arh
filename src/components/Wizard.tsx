@@ -1,8 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { LayoutGrid, User, Calendar, Eye, Paperclip, CheckSquare } from 'lucide-react';
 import Button from './shared/Button';
 import { Toaster, toast } from 'react-hot-toast';
-import AccesibilidadPanel from './AccesibilidadPanel';
+import AccesibilidadPanel, { hablar, lectorActivo } from './AccesibilidadPanel';
+
+const narrar = (texto: string) => { if (lectorActivo()) hablar(texto); };
 
 const steps = [
   { icon: LayoutGrid, label: 'Inicio' },
@@ -83,11 +85,52 @@ const initialForm = {
 };
 
 export default function Wizard() {
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState<any>(initialForm);
+  const [step, setStep] = useState(() => {
+    const saved = parseInt(sessionStorage.getItem('wizard-step') || '1');
+    return saved >= 1 && saved <= 6 ? saved : 1;
+  });
+  const [formData, setFormData] = useState<any>(() => {
+    try { return { ...initialForm, ...JSON.parse(sessionStorage.getItem('wizard-form') || '{}') }; }
+    catch { return initialForm; }
+  });
   const [nuevoInvolucrado, setNuevoInvolucrado] = useState({ nombre: '', apellidos: '', correo: '', telefono: '', comentarios: '' });
   const [archivosSubidos, setArchivosSubidos] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Persistir paso y formulario en sessionStorage
+  useEffect(() => { sessionStorage.setItem('wizard-step', String(step)); }, [step]);
+  useEffect(() => { sessionStorage.setItem('wizard-form', JSON.stringify(formData)); }, [formData]);
+
+  // Detectar modo alto contraste del sistema operativo
+  useEffect(() => {
+    const mq = window.matchMedia('(forced-colors: active)');
+    if (mq.matches) document.documentElement.classList.add('acc-contrast-dark');
+    const handler = (e: MediaQueryListEvent) =>
+      document.documentElement.classList.toggle('acc-contrast-dark', e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  // Atajos de teclado globales
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!e.altKey) return;
+      if (e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
+        document.querySelector<HTMLButtonElement>('[aria-label="Abrir panel de accesibilidad"]')?.click();
+      }
+      if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault();
+        document.querySelector<HTMLButtonElement>('[data-action="siguiente"]')?.click();
+      }
+      if (e.key === 'p' || e.key === 'P') {
+        e.preventDefault();
+        document.querySelector<HTMLButtonElement>('[data-action="anterior"]')?.click();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[url('https://picsum.photos/seed/office/1920/1080?blur=10')] bg-cover bg-center flex items-center justify-center p-4">
@@ -130,7 +173,7 @@ export default function Wizard() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Centro *</label>
-                  <select value={formData.centro} onChange={(e) => setFormData({...formData, centro: e.target.value})} className="w-full mt-1 p-2 border border-slate-300 rounded focus:ring-1 focus:ring-slate-500 outline-none">
+                  <select value={formData.centro} onChange={(e) => { setFormData({...formData, centro: e.target.value}); narrar(`Centro seleccionado: ${e.target.value}`); }} className="w-full mt-1 p-2 border border-slate-300 rounded focus:ring-1 focus:ring-slate-500 outline-none">
                     <option value="">Seleccionar...</option>
                     {SEDES.map(sede => <option key={sede} value={sede}>{sede}</option>)}
                   </select>
@@ -138,7 +181,7 @@ export default function Wizard() {
               </div>
               <div className="mt-8">
                 <label className="block text-sm font-medium text-slate-700">Tipo de notificación *</label>
-                <select value={formData.tipo} onChange={(e) => setFormData({...formData, tipo: e.target.value})} className="w-full mt-1 p-2 border border-slate-300 rounded focus:ring-1 focus:ring-slate-500 outline-none">
+                <select value={formData.tipo} onChange={(e) => { setFormData({...formData, tipo: e.target.value}); narrar(`Tipo seleccionado: ${e.target.value}`); }} className="w-full mt-1 p-2 border border-slate-300 rounded focus:ring-1 focus:ring-slate-500 outline-none">
                   <option value="">Seleccionar...</option>
                   {TIPOS_NOTIFICACION.map(tipo => <option key={tipo} value={tipo}>{tipo}</option>)}
                 </select>
@@ -151,11 +194,11 @@ export default function Wizard() {
               <h2 className="text-2xl font-semibold text-center text-slate-700 mb-10">DATOS DE IDENTIFICACIÓN</h2>
               <div className="flex justify-center gap-6 mb-8">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="modo" checked={formData.modo === 'identificado'} onChange={() => setFormData({...formData, modo: 'identificado'})} />
+                  <input type="radio" name="modo" checked={formData.modo === 'identificado'} onChange={() => { setFormData({...formData, modo: 'identificado'}); narrar('Modo identificado seleccionado'); }} />
                   Identificado
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="modo" checked={formData.modo === 'anonimo'} onChange={() => setFormData({...formData, modo: 'anonimo'})} />
+                  <input type="radio" name="modo" checked={formData.modo === 'anonimo'} onChange={() => { setFormData({...formData, modo: 'anonimo'}); narrar('Modo anónimo seleccionado. No se solicitarán datos personales.'); }} />
                   Anónimo
                 </label>
               </div>
@@ -163,7 +206,7 @@ export default function Wizard() {
                 <div className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-slate-700">Relación con la empresa *</label>
-                    <select value={formData.denunciante.relacion} onChange={(e) => setFormData({...formData, denunciante: {...formData.denunciante, relacion: e.target.value}})} className="w-full mt-1 p-2 border border-slate-300 rounded focus:ring-1 focus:ring-slate-500 outline-none">
+                    <select value={formData.denunciante.relacion} onChange={(e) => { setFormData({...formData, denunciante: {...formData.denunciante, relacion: e.target.value}}); narrar(`Relación seleccionada: ${e.target.value}`); }} className="w-full mt-1 p-2 border border-slate-300 rounded focus:ring-1 focus:ring-slate-500 outline-none">
                       <option value="">Seleccionar...</option>
                       {RELACIONES_EMPRESA.map(rel => <option key={rel} value={rel}>{rel}</option>)}
                     </select>
@@ -316,22 +359,22 @@ export default function Wizard() {
           )}
           <Button onClick={async () => {
             if (step === 1 && (!formData.centro || !formData.tipo)) {
-              toast.error("Por favor, completa los campos requeridos.");
-              return;
+              const msg = 'Por favor, completa los campos requeridos: centro y tipo de notificación.';
+              toast.error(msg); narrar(msg); return;
             }
             if (step === 2 && formData.modo === 'identificado') {
               if (!formData.denunciante.relacion || !formData.denunciante.nombre || !formData.denunciante.apellidos || !formData.denunciante.correo) {
-                toast.error("Por favor, completa todos los datos de identificación.");
-                return;
+                const msg = 'Por favor, completa todos los datos de identificación: relación, nombre, apellidos y correo.';
+                toast.error(msg); narrar(msg); return;
               }
             }
             if (step === 3 && (!formData.notificacion.fecha || !formData.notificacion.descripcion)) {
-              toast.error("Por favor, completa los campos requeridos.");
-              return;
+              const msg = 'Por favor, completa la fecha de incidencia y la descripción.';
+              toast.error(msg); narrar(msg); return;
             }
             if (step === 6 && (!formData.final.aceptoPrivacidad || !formData.final.aceptoTerminos)) {
-              toast.error("Por favor, acepta la política de privacidad y los términos y condiciones.");
-              return;
+              const msg = 'Por favor, acepta la política de privacidad y los términos y condiciones.';
+              toast.error(msg); narrar(msg); return;
             }
             if (step === 6) {
               try {
@@ -350,15 +393,17 @@ export default function Wizard() {
                     attachments
                   })
                 });
-                if (!response.ok) throw new Error("Error al enviar el correo.");
+                if (!response.ok) throw new Error('Error al enviar el correo.');
                 toast.dismiss();
-                toast.success("Formulario enviado con éxito.");
+                const okMsg = 'Formulario enviado con éxito. Gracias por su denuncia.';
+                toast.success(okMsg); narrar(okMsg);
                 setFormData(initialForm);
                 setArchivosSubidos([]);
                 setStep(1);
               } catch (error) {
                 toast.dismiss();
-                toast.error(error instanceof Error ? error.message : "Hubo un error al enviar el formulario.");
+                const errMsg = error instanceof Error ? error.message : 'Hubo un error al enviar el formulario.';
+                toast.error(errMsg); narrar(errMsg);
               }
               return;
             }
@@ -367,7 +412,7 @@ export default function Wizard() {
         </div>
       </div>
 
-      <AccesibilidadPanel />
+      <AccesibilidadPanel step={step} />
     </div>
   );
 }
