@@ -18,9 +18,9 @@ const steps = [
 const TIPOS_NOTIFICACION = [
   "Actos de corrupción/fraude", "Escenarios de conflicto de interés", "Incumplimiento al código de ética/políticas y normativa interna",
   "Independencia profesional/relación inapropiada con clientes", "Regalos, hopitalidad o beneficios indebidos",
-  "Uso indebido de información/divulgación de información confidencial", "Descriminación o trato desigual",
+  "Uso indebido de información/divulgación de información confidencial", "Discriminación o trato desigual",
   "Acoso laboral o sexual/hostigamiento", "Violaciones a derechos humanos",
-  "Incumplimiento de leyes o regulaciones", "Actuación irregular de libre competencia/prácticas desleales", "Relación indebida con proveedores", "Otros"];
+  "Incumplimiento de leyes o regulaciones", "Actuación irregular de libre competencia/prácticas desleales", "Relación indebida con proveedores", "Violaciones a la ética digital", "Otros"];
 
 const SEDES = ["Sede Tehuacán", "Puebla (Torre Elementa)"];
 

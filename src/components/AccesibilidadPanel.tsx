@@ -46,12 +46,12 @@ const DEFAULTS = {
 type Prefs = typeof DEFAULTS;
 
 const TEXTOS_PASOS: Record<number, string> = {
-  1: 'Paso 1 de 6. ¿Qué hecho quiere notificar? Seleccione el centro y el tipo de notificación.',
+  1: 'Paso 1 de 6. ¿Cuál es el hecho que desea denunciar? Seleccione el centro y el tipo de notificación.',
   2: 'Paso 2 de 6. Datos de identificación. Elija si desea identificarse o realizar la denuncia de forma anónima.',
-  3: 'Paso 3 de 6. Datos de la notificación. Ingrese la fecha de la incidencia y una descripción detallada.',
+  3: 'Paso 3 de 6. Datos de la denuncia. Ingrese la fecha de la incidencia y una descripción detallada.',
   4: 'Paso 4 de 6. Personas involucradas. Puede agregar de forma opcional a testigos o personas involucradas.',
   5: 'Paso 5 de 6. Archivos. Puede adjuntar evidencias o documentos relacionados.',
-  6: 'Paso 6 de 6. Finalizar notificación. Revise los términos y envíe su denuncia.',
+  6: 'Paso 6 de 6. Finalizar Denuncia. Revise los términos y envíe su denuncia.',
 };
 
 const PERFILES = [
