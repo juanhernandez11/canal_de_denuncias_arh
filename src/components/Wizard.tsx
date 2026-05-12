@@ -38,7 +38,7 @@ const fileToBase64 = (file: File): Promise<string> =>
   });
 
 const buildEmailHtml = (formData: any) => `
-  <h2>Nueva notificación: ${formData.tipo}</h2>
+  <h2>Nueva denuncia: ${formData.tipo}</h2>
   <h3>Datos generales</h3>
   <ul>
     <li><strong>Empresa:</strong> ${formData.empresa}</li>
@@ -387,8 +387,8 @@ export default function Wizard() {
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
                     to: 'denunciasconsultoresarh@gmail.com',
-                    subject: `Nueva notificación recibida: ${formData.tipo}`,
-                    text: `Se ha recibido una nueva notificación.\n\nEmpresa: ${formData.empresa}\nCentro: ${formData.centro}\nTipo: ${formData.tipo}\nDescripción: ${formData.notificacion.descripcion}`,
+                    subject: `Nueva denuncia recibida: ${formData.tipo}`,
+                    text: `Se ha recibido una nueva denuncia.\n\nEmpresa: ${formData.empresa}\nCentro: ${formData.centro}\nTipo: ${formData.tipo}\nDescripción: ${formData.notificacion.descripcion}`,
                     html: buildEmailHtml(formData),
                     attachments
                   })
