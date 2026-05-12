@@ -165,7 +165,7 @@ export default function Wizard() {
         <div className="p-12">
           {step === 1 && (
             <>
-              <h2 className="text-2xl font-semibold text-center text-slate-700 mb-10">¿QUÉ HECHO ES EL QUE QUIERE NOTIFICAR?</h2>
+              <h2 className="text-2xl font-semibold text-center text-slate-700 mb-10">¿CUAL ES EL HECHO QUE DESEA DENUNCIAR?</h2>
               <div className="grid grid-cols-2 gap-8">
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Empresa *</label>
@@ -241,7 +241,7 @@ export default function Wizard() {
 
           {step === 3 && (
             <>
-              <h2 className="text-2xl font-semibold text-center text-slate-700 mb-10">DATOS DE LA NOTIFICACIÓN</h2>
+              <h2 className="text-2xl font-semibold text-center text-slate-700 mb-10">DATOS DE LA DENUNCIA</h2>
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Fecha de la incidencia *</label>
@@ -329,7 +329,7 @@ export default function Wizard() {
 
           {step === 6 && (
             <>
-              <h2 className="text-2xl font-semibold text-center text-slate-700 mb-10">FINALIZAR NOTIFICACIÓN</h2>
+              <h2 className="text-2xl font-semibold text-center text-slate-700 mb-10">FINALIZAR DENUNCIA</h2>
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Comentarios adicionales</label>
