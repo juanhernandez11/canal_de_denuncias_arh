@@ -29,6 +29,90 @@ const RELACIONES_EMPRESA = [
   "Voluntario/a", "Proveedor", "Cliente", "Accionista", "Subcontratista", "Socio"
 ];
 
+const generarPDFComprobante = (formData: any, folio: string) => {
+  const fecha = new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <title>Comprobante de Denuncia - ${folio}</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; color: #1e293b; }
+        .header { background: #1a237e; color: white; padding: 24px 32px; border-radius: 8px; margin-bottom: 32px; }
+        .header h1 { font-size: 20px; margin-bottom: 4px; }
+        .header p { font-size: 12px; color: #ffc107; }
+        .folio-box { background: linear-gradient(135deg, #f57c00, #ffc107); color: white; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 24px; }
+        .folio-box .label { font-size: 12px; opacity: 0.9; margin-bottom: 4px; }
+        .folio-box .code { font-size: 28px; font-weight: bold; letter-spacing: 3px; }
+        .section { margin-bottom: 20px; }
+        .section h2 { font-size: 14px; font-weight: 700; color: #1a237e; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 12px; }
+        .field { display: flex; margin-bottom: 8px; font-size: 13px; }
+        .field .label { width: 180px; color: #64748b; flex-shrink: 0; }
+        .field .value { color: #1e293b; font-weight: 600; }
+        .description { background: #f8fafc; padding: 12px 16px; border-left: 3px solid #1a237e; border-radius: 0 4px 4px 0; font-size: 13px; line-height: 1.6; }
+        .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 11px; color: #94a3b8; }
+        .nota { background: #fff8e1; border: 1px solid #ffc107; border-radius: 6px; padding: 12px 16px; font-size: 12px; color: #78350f; margin-top: 20px; }
+        @media print { body { padding: 20px; } }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>ARH Consultores — Canal Ético de Denuncias</h1>
+        <p>Comprobante de denuncia recibida</p>
+      </div>
+      <div class="folio-box">
+        <p class="label">FOLIO DE SEGUIMIENTO</p>
+        <p class="code">${folio}</p>
+      </div>
+      <div class="section">
+        <h2>Datos Generales</h2>
+        <div class="field"><span class="label">Empresa:</span><span class="value">${formData.empresa}</span></div>
+        <div class="field"><span class="label">Centro / Sede:</span><span class="value">${formData.centro}</span></div>
+        <div class="field"><span class="label">Tipo de denuncia:</span><span class="value">${formData.tipo}</span></div>
+        <div class="field"><span class="label">Fecha de incidencia:</span><span class="value">${formData.notificacion.fecha}</span></div>
+        <div class="field"><span class="label">Modalidad:</span><span class="value">${formData.modo === 'anonimo' ? 'Anónima' : 'Identificada'}</span></div>
+      </div>
+      ${formData.modo === 'identificado' ? `
+      <div class="section">
+        <h2>Datos del Denunciante</h2>
+        <div class="field"><span class="label">Nombre:</span><span class="value">${formData.denunciante.nombre} ${formData.denunciante.apellidos}</span></div>
+        <div class="field"><span class="label">Correo:</span><span class="value">${formData.denunciante.correo}</span></div>
+        ${formData.denunciante.telefono ? `<div class="field"><span class="label">Teléfono:</span><span class="value">${formData.denunciante.telefono}</span></div>` : ''}
+        <div class="field"><span class="label">Relación con la empresa:</span><span class="value">${formData.denunciante.relacion}</span></div>
+      </div>
+      ` : ''}
+      <div class="section">
+        <h2>Descripción de los Hechos</h2>
+        <div class="description">${formData.notificacion.descripcion}</div>
+      </div>
+      ${formData.involucrados.length > 0 ? `
+      <div class="section">
+        <h2>Personas Involucradas</h2>
+        ${formData.involucrados.map((inv: any, i: number) => `
+          <div class="field"><span class="label">Persona ${i + 1}:</span><span class="value">${inv.nombre} ${inv.apellidos}</span></div>
+        `).join('')}
+      </div>
+      ` : ''}
+      <div class="nota">
+        <strong>Importante:</strong> Conserve este documento como comprobante de su denuncia. Puede utilizar el folio <strong>${folio}</strong> para dar seguimiento a su caso.
+      </div>
+      <div class="footer">
+        <p>Documento generado el ${fecha}</p>
+        <p>ARH Consultores — Canal Ético de Denuncias — Confidencial</p>
+      </div>
+    </body>
+    </html>
+  `;
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    printWindow.onload = () => { printWindow.print(); };
+  }
+};
+
 const fileToBase64 = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -37,7 +121,7 @@ const fileToBase64 = (file: File): Promise<string> =>
     reader.onerror = (error) => reject(error);
   });
 
-const buildEmailHtml = (formData: any) => `
+const buildEmailHtml = (formData: any, folio?: string) => `
 <!DOCTYPE html>
 <html lang="es" xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -46,18 +130,19 @@ const buildEmailHtml = (formData: any) => `
   <title>Denuncia - Canal Ético</title>
 </head>
 <body style="margin:0;padding:0;width:100%;background-color:#ffffff;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
-  <!-- Header verde ancho completo -->
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#16a34a;">
+  <!-- Header azul ancho completo -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1a237e;">
     <tr>
       <td style="padding:28px 40px;">
         <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.5px;">🛡️ Canal Ético de Denuncias</h1>
-        <p style="margin:6px 0 0;color:#bbf7d0;font-size:14px;">ARH Consultores — Nueva comunicación recibida</p>
+        <p style="margin:6px 0 0;color:#c5cae9;font-size:14px;">ARH Consultores — Nueva comunicación recibida</p>
+        ${folio ? `<p style="margin:10px 0 0;color:#ffc107;font-size:14px;font-weight:700;">Folio: ${folio}</p>` : ''}
       </td>
     </tr>
   </table>
 
   <!-- Barra de tipo de denuncia -->
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fefce8;border-bottom:3px solid #f59e0b;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fefce8;border-bottom:3px solid #f57c00;">
     <tr>
       <td style="padding:16px 40px;">
         <p style="margin:0;font-size:11px;color:#92400e;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Tipo de denuncia</p>
@@ -105,7 +190,7 @@ const buildEmailHtml = (formData: any) => `
     </tr>
     <tr>
       <td style="padding:0 40px;">
-        <p style="margin:0;font-size:14px;color:#334155;line-height:1.7;background-color:#f8fafc;padding:20px;border-left:4px solid #16a34a;border-radius:0 6px 6px 0;">${formData.notificacion.descripcion}</p>
+        <p style="margin:0;font-size:14px;color:#334155;line-height:1.7;background-color:#f8fafc;padding:20px;border-left:4px solid #1a237e;border-radius:0 6px 6px 0;">${formData.notificacion.descripcion}</p>
       </td>
     </tr>
 
@@ -118,18 +203,18 @@ const buildEmailHtml = (formData: any) => `
     </tr>
     <tr>
       <td style="padding:0 40px;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px;background-color:#f0fdf4;border:1px solid #86efac;border-radius:6px;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px;background-color:#e8eaf6;border:1px solid #9fa8da;border-radius:6px;">
           <tr>
-            <td style="padding:12px 16px;color:#64748b;width:200px;vertical-align:top;border-bottom:1px solid #bbf7d0;">Relación con empresa</td>
-            <td style="padding:12px 16px;color:#1e293b;font-weight:600;border-bottom:1px solid #bbf7d0;">${formData.denunciante.relacion}</td>
+            <td style="padding:12px 16px;color:#64748b;width:200px;vertical-align:top;border-bottom:1px solid #c5cae9;">Relación con empresa</td>
+            <td style="padding:12px 16px;color:#1e293b;font-weight:600;border-bottom:1px solid #c5cae9;">${formData.denunciante.relacion}</td>
           </tr>
           <tr>
-            <td style="padding:12px 16px;color:#64748b;vertical-align:top;border-bottom:1px solid #bbf7d0;">Nombre completo</td>
-            <td style="padding:12px 16px;color:#1e293b;font-weight:600;border-bottom:1px solid #bbf7d0;">${formData.denunciante.nombre} ${formData.denunciante.apellidos}</td>
+            <td style="padding:12px 16px;color:#64748b;vertical-align:top;border-bottom:1px solid #c5cae9;">Nombre completo</td>
+            <td style="padding:12px 16px;color:#1e293b;font-weight:600;border-bottom:1px solid #c5cae9;">${formData.denunciante.nombre} ${formData.denunciante.apellidos}</td>
           </tr>
           <tr>
-            <td style="padding:12px 16px;color:#64748b;vertical-align:top;${formData.denunciante.telefono ? 'border-bottom:1px solid #bbf7d0;' : ''}">Correo electrónico</td>
-            <td style="padding:12px 16px;color:#1e293b;font-weight:600;${formData.denunciante.telefono ? 'border-bottom:1px solid #bbf7d0;' : ''}">${formData.denunciante.correo}</td>
+            <td style="padding:12px 16px;color:#64748b;vertical-align:top;${formData.denunciante.telefono ? 'border-bottom:1px solid #c5cae9;' : ''}">Correo electrónico</td>
+            <td style="padding:12px 16px;color:#1e293b;font-weight:600;${formData.denunciante.telefono ? 'border-bottom:1px solid #c5cae9;' : ''}">${formData.denunciante.correo}</td>
           </tr>
           ${formData.denunciante.telefono ? `
           <tr>
@@ -243,6 +328,8 @@ export default function Wizard() {
   });
   const [nuevoInvolucrado, setNuevoInvolucrado] = useState({ nombre: '', apellidos: '', correo: '', telefono: '', comentarios: '' });
   const [archivosSubidos, setArchivosSubidos] = useState<File[]>([]);
+  const [enviado, setEnviado] = useState(false);
+  const [folioGenerado, setFolioGenerado] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Persistir paso y formulario en sessionStorage
@@ -281,38 +368,30 @@ export default function Wizard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-green-900 flex items-center justify-center p-4 sm:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-[#1a237e] to-slate-900 flex items-center justify-center p-4 sm:p-8">
       <Toaster position="top-right" />
       <div className="w-full max-w-4xl bg-white rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.3)] overflow-hidden">
-        {/* Header mejorado con gradiente */}
-        <div className="bg-gradient-to-r from-green-600 to-green-700 px-8 py-6 flex items-center gap-5">
-          <div className="w-14 h-14 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center shrink-0">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" className="w-9 h-9">
-              <path d="M20 44 L20 24 Q20 20 24 20 L40 20 Q44 20 44 24 L44 36 Q44 40 40 40 L28 40 Z" fill="white" />
-              <rect x="26" y="26" width="12" height="2" rx="1" fill="#16a34a" />
-              <rect x="26" y="30" width="12" height="2" rx="1" fill="#16a34a" />
-              <rect x="26" y="34" width="8" height="2" rx="1" fill="#16a34a" />
-              <circle cx="21" cy="45" r="4" fill="white" opacity="0.8" />
-              <path d="M18 45 Q20 48 21 49 L24 43" stroke="#16a34a" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-            </svg>
-          </div>
-          <div>
+        {/* Header con logo ARH Consultores */}
+        <div className="bg-gradient-to-r from-[#1a237e] to-[#283593] px-8 py-6 flex items-center gap-5">
+          <img src="/logo-arh.png" alt="ARH Consultores" className="h-12 object-contain shrink-0" />
+          <div className="border-l border-white/30 pl-5">
             <h1 className="text-white font-bold text-lg tracking-tight">Canal Ético de Denuncias</h1>
-            <p className="text-green-100 text-sm mt-0.5">ARH Consultores — Enviar comunicación</p>
+            <p className="text-indigo-200 text-sm mt-0.5">Enviar comunicación</p>
           </div>
         </div>
 
         {/* Barra de pasos mejorada con conectores y labels */}
+        {!enviado && (
         <div className="px-8 py-6 bg-slate-50 border-b border-slate-200">
           <div className="flex items-center justify-between relative">
             {/* Línea conectora de fondo */}
             <div className="absolute top-5 left-[40px] right-[40px] h-0.5 bg-slate-200 z-0"></div>
-            <div className="absolute top-5 left-[40px] h-0.5 bg-green-500 z-0 transition-all duration-500" style={{ width: `${((step - 1) / (steps.length - 1)) * (100 - (80 / (steps.length)))}%` }}></div>
+            <div className="absolute top-5 left-[40px] h-0.5 bg-[#1a237e] z-0 transition-all duration-500" style={{ width: `${((step - 1) / (steps.length - 1)) * (100 - (80 / (steps.length)))}%` }}></div>
             {steps.map((s, i) => (
               <div key={i} className="flex flex-col items-center gap-1.5 relative z-10">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                  i + 1 < step ? 'bg-green-500 text-white shadow-md shadow-green-200' :
-                  i + 1 === step ? 'bg-green-600 text-white shadow-lg shadow-green-300 scale-110' :
+                  i + 1 < step ? 'bg-[#f57c00] text-white shadow-md shadow-orange-200' :
+                  i + 1 === step ? 'bg-[#1a237e] text-white shadow-lg shadow-indigo-300 scale-110' :
                   'bg-white text-slate-400 border-2 border-slate-200'
                 }`}>
                   {i + 1 < step ? (
@@ -322,14 +401,72 @@ export default function Wizard() {
                   )}
                 </div>
                 <span className={`text-[11px] font-medium transition-colors ${
-                  i + 1 <= step ? 'text-green-700' : 'text-slate-400'
+                  i + 1 <= step ? 'text-[#1a237e]' : 'text-slate-400'
                 }`}>{s.label}</span>
               </div>
             ))}
           </div>
         </div>
+        )}
 
         <div className="p-8 sm:p-12">
+          {enviado ? (
+            <div className="flex flex-col items-center justify-center py-8">
+              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+                <svg className="w-10 h-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-slate-800 mb-2 text-center">Denuncia enviada correctamente</h2>
+              {folioGenerado && (
+                <div className="mt-4 mb-4 bg-gradient-to-r from-[#f57c00] to-[#ffc107] rounded-xl px-8 py-5 text-center shadow-lg">
+                  <p className="text-white text-sm font-medium mb-1">Su folio de seguimiento</p>
+                  <p className="text-white text-2xl font-extrabold tracking-wider">{folioGenerado}</p>
+                </div>
+              )}
+              {folioGenerado && (
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(folioGenerado);
+                    toast.success('Folio copiado al portapapeles');
+                  }}
+                  className="mb-4 flex items-center gap-2 mx-auto px-4 py-2 text-sm font-medium text-[#1a237e] border border-[#1a237e] rounded-lg hover:bg-blue-50 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                  Copiar folio
+                </button>
+              )}
+              {formData.modo === 'identificado' ? (
+                <p className="text-slate-600 text-sm text-center mt-2">Se ha enviado una confirmación a su correo electrónico</p>
+              ) : (
+                <p className="text-slate-600 text-sm text-center mt-2 font-medium">Guarde este folio para dar seguimiento a su denuncia</p>
+              )}
+              <p className="text-slate-400 text-xs text-center mt-2">💡 Si no encuentra el correo de confirmación, revise su carpeta de spam o correo no deseado.</p>
+              <div className="flex flex-col sm:flex-row gap-3 mt-8 items-center">
+                <button
+                  onClick={() => {
+                    generarPDFComprobante(formData, folioGenerado);
+                  }}
+                  className="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-[#f57c00] border-2 border-[#f57c00] rounded-lg hover:bg-orange-50 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                  Descargar comprobante PDF
+                </button>
+                <button
+                  onClick={() => {
+                    setEnviado(false);
+                    setFolioGenerado('');
+                    setFormData(initialForm);
+                    setArchivosSubidos([]);
+                    setStep(1);
+                  }}
+                  className="px-8 py-3 bg-[#1a237e] text-white rounded-lg font-semibold text-sm hover:bg-[#283593] transition-colors shadow-sm"
+                >
+                  Nueva denuncia
+                </button>
+              </div>
+            </div>
+          ) : (<>
           {step === 1 && (
             <>
               <h2 className="text-xl sm:text-2xl font-bold text-center text-slate-800 mb-2">¿Cuál es el hecho que desea denunciar?</h2>
@@ -341,7 +478,7 @@ export default function Wizard() {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Centro <span className="text-red-500">*</span></label>
-                  <select value={formData.centro} onChange={(e) => { setFormData({...formData, centro: e.target.value}); narrar(`Centro seleccionado: ${e.target.value}`); }} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm transition-shadow">
+                  <select value={formData.centro} onChange={(e) => { setFormData({...formData, centro: e.target.value}); narrar(`Centro seleccionado: ${e.target.value}`); }} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[#1a237e] focus:border-[#1a237e] outline-none text-sm transition-shadow">
                     <option value="">Seleccionar...</option>
                     {SEDES.map(sede => <option key={sede} value={sede}>{sede}</option>)}
                   </select>
@@ -349,7 +486,7 @@ export default function Wizard() {
               </div>
               <div className="mt-6">
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tipo de notificación <span className="text-red-500">*</span></label>
-                <select value={formData.tipo} onChange={(e) => { setFormData({...formData, tipo: e.target.value}); narrar(`Tipo seleccionado: ${e.target.value}`); }} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm transition-shadow">
+                <select value={formData.tipo} onChange={(e) => { setFormData({...formData, tipo: e.target.value}); narrar(`Tipo seleccionado: ${e.target.value}`); }} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[#1a237e] focus:border-[#1a237e] outline-none text-sm transition-shadow">
                   <option value="">Seleccionar...</option>
                   {TIPOS_NOTIFICACION.map(tipo => <option key={tipo} value={tipo}>{tipo}</option>)}
                 </select>
@@ -362,20 +499,20 @@ export default function Wizard() {
               <h2 className="text-xl sm:text-2xl font-bold text-center text-slate-800 mb-2">Datos de identificación</h2>
               <p className="text-center text-slate-500 text-sm mb-10">Elija si desea identificarse o realizar la denuncia de forma anónima</p>
               <div className="flex justify-center gap-4 mb-8">
-                <label className={`flex items-center gap-3 cursor-pointer px-5 py-3 rounded-lg border-2 transition-all ${formData.modo === 'identificado' ? 'border-green-500 bg-green-50 shadow-sm' : 'border-slate-200 hover:border-slate-300'}`}>
-                  <input type="radio" name="modo" checked={formData.modo === 'identificado'} onChange={() => { setFormData({...formData, modo: 'identificado'}); narrar('Modo identificado seleccionado'); }} className="accent-green-600" />
-                  <span className={`text-sm font-medium ${formData.modo === 'identificado' ? 'text-green-700' : 'text-slate-600'}`}>👤 Identificado</span>
+                <label className={`flex items-center gap-3 cursor-pointer px-5 py-3 rounded-lg border-2 transition-all ${formData.modo === 'identificado' ? 'border-[#1a237e] bg-blue-50 shadow-sm' : 'border-slate-200 hover:border-slate-300'}`}>
+                  <input type="radio" name="modo" checked={formData.modo === 'identificado'} onChange={() => { setFormData({...formData, modo: 'identificado'}); narrar('Modo identificado seleccionado'); }} className="accent-[#1a237e]" />
+                  <span className={`text-sm font-medium ${formData.modo === 'identificado' ? 'text-[#1a237e]' : 'text-slate-600'}`}>👤 Identificado</span>
                 </label>
-                <label className={`flex items-center gap-3 cursor-pointer px-5 py-3 rounded-lg border-2 transition-all ${formData.modo === 'anonimo' ? 'border-green-500 bg-green-50 shadow-sm' : 'border-slate-200 hover:border-slate-300'}`}>
-                  <input type="radio" name="modo" checked={formData.modo === 'anonimo'} onChange={() => { setFormData({...formData, modo: 'anonimo'}); narrar('Modo anónimo seleccionado. No se solicitarán datos personales.'); }} className="accent-green-600" />
-                  <span className={`text-sm font-medium ${formData.modo === 'anonimo' ? 'text-green-700' : 'text-slate-600'}`}>🔒 Anónimo</span>
+                <label className={`flex items-center gap-3 cursor-pointer px-5 py-3 rounded-lg border-2 transition-all ${formData.modo === 'anonimo' ? 'border-[#f57c00] bg-orange-50 shadow-sm' : 'border-slate-200 hover:border-slate-300'}`}>
+                  <input type="radio" name="modo" checked={formData.modo === 'anonimo'} onChange={() => { setFormData({...formData, modo: 'anonimo'}); narrar('Modo anónimo seleccionado. No se solicitarán datos personales.'); }} className="accent-[#1a237e]" />
+                  <span className={`text-sm font-medium ${formData.modo === 'anonimo' ? 'text-[#f57c00]' : 'text-slate-600'}`}>🔒 Anónimo</span>
                 </label>
               </div>
               {formData.modo === 'identificado' && (
                 <div className="space-y-5">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Relación con la empresa <span className="text-red-500">*</span></label>
-                    <select value={formData.denunciante.relacion} onChange={(e) => { setFormData({...formData, denunciante: {...formData.denunciante, relacion: e.target.value}}); narrar(`Relación seleccionada: ${e.target.value}`); }} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm transition-shadow">
+                    <select value={formData.denunciante.relacion} onChange={(e) => { setFormData({...formData, denunciante: {...formData.denunciante, relacion: e.target.value}}); narrar(`Relación seleccionada: ${e.target.value}`); }} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[#1a237e] focus:border-[#1a237e] outline-none text-sm transition-shadow">
                       <option value="">Seleccionar...</option>
                       {RELACIONES_EMPRESA.map(rel => <option key={rel} value={rel}>{rel}</option>)}
                     </select>
@@ -383,21 +520,21 @@ export default function Wizard() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-1.5">Nombre <span className="text-red-500">*</span></label>
-                      <input type="text" value={formData.denunciante.nombre} onChange={(e) => setFormData({...formData, denunciante: {...formData.denunciante, nombre: e.target.value}})} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm transition-shadow" placeholder="Ingrese su nombre" />
+                      <input type="text" value={formData.denunciante.nombre} onChange={(e) => setFormData({...formData, denunciante: {...formData.denunciante, nombre: e.target.value}})} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[#1a237e] focus:border-[#1a237e] outline-none text-sm transition-shadow" placeholder="Ingrese su nombre" />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-1.5">Apellidos <span className="text-red-500">*</span></label>
-                      <input type="text" value={formData.denunciante.apellidos} onChange={(e) => setFormData({...formData, denunciante: {...formData.denunciante, apellidos: e.target.value}})} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm transition-shadow" placeholder="Ingrese sus apellidos" />
+                      <input type="text" value={formData.denunciante.apellidos} onChange={(e) => setFormData({...formData, denunciante: {...formData.denunciante, apellidos: e.target.value}})} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[#1a237e] focus:border-[#1a237e] outline-none text-sm transition-shadow" placeholder="Ingrese sus apellidos" />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-1.5">Correo <span className="text-red-500">*</span></label>
-                      <input type="email" value={formData.denunciante.correo} onChange={(e) => setFormData({...formData, denunciante: {...formData.denunciante, correo: e.target.value}})} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm transition-shadow" placeholder="correo@ejemplo.com" />
+                      <input type="email" value={formData.denunciante.correo} onChange={(e) => setFormData({...formData, denunciante: {...formData.denunciante, correo: e.target.value}})} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[#1a237e] focus:border-[#1a237e] outline-none text-sm transition-shadow" placeholder="correo@ejemplo.com" />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-1.5">Teléfono <span className="text-slate-400 text-xs font-normal">(opcional)</span></label>
-                      <input type="tel" value={formData.denunciante.telefono} onChange={(e) => setFormData({...formData, denunciante: {...formData.denunciante, telefono: e.target.value}})} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm transition-shadow" placeholder="(000) 000-0000" />
+                      <input type="tel" value={formData.denunciante.telefono} onChange={(e) => setFormData({...formData, denunciante: {...formData.denunciante, telefono: e.target.value}})} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[#1a237e] focus:border-[#1a237e] outline-none text-sm transition-shadow" placeholder="(000) 000-0000" />
                     </div>
                   </div>
                 </div>
@@ -418,11 +555,11 @@ export default function Wizard() {
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Fecha de la incidencia <span className="text-red-500">*</span></label>
-                  <input type="date" value={formData.notificacion.fecha} onChange={(e) => setFormData({...formData, notificacion: {...formData.notificacion, fecha: e.target.value}})} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm transition-shadow" />
+                  <input type="date" value={formData.notificacion.fecha} onChange={(e) => setFormData({...formData, notificacion: {...formData.notificacion, fecha: e.target.value}})} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[#1a237e] focus:border-[#1a237e] outline-none text-sm transition-shadow" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Descripción <span className="text-red-500">*</span></label>
-                  <textarea value={formData.notificacion.descripcion} onChange={(e) => setFormData({...formData, notificacion: {...formData.notificacion, descripcion: e.target.value}})} rows={7} maxLength={4000} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm transition-shadow resize-none" placeholder="Por favor, describe en este recuadro todos los detalles sobre el asunto que te preocupa o sugerencia. Trata de ser tan específico como puedas en cuanto a los nombres o departamentos, personas, documentos, políticas, lugares, fechas, horas, etc." />
+                  <textarea value={formData.notificacion.descripcion} onChange={(e) => setFormData({...formData, notificacion: {...formData.notificacion, descripcion: e.target.value}})} rows={7} maxLength={4000} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[#1a237e] focus:border-[#1a237e] outline-none text-sm transition-shadow resize-none" placeholder="Por favor, describe en este recuadro todos los detalles sobre el asunto que te preocupa o sugerencia. Trata de ser tan específico como puedas en cuanto a los nombres o departamentos, personas, documentos, políticas, lugares, fechas, horas, etc." />
                   <div className="flex justify-between mt-1.5">
                     <p className="text-xs text-slate-400">Sea lo más detallado posible</p>
                     <p className="text-xs text-slate-400">{formData.notificacion.descripcion.length}/4000</p>
@@ -438,12 +575,12 @@ export default function Wizard() {
               <p className="text-center text-slate-500 text-sm mb-10">Agregue datos de testigos o personas involucradas (opcional)</p>
               <div className="space-y-4 bg-slate-50 rounded-xl p-6 border border-slate-200">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <input type="text" placeholder="Nombre" value={nuevoInvolucrado.nombre} onChange={(e) => setNuevoInvolucrado({...nuevoInvolucrado, nombre: e.target.value})} className="p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm transition-shadow" />
-                  <input type="text" placeholder="Apellidos" value={nuevoInvolucrado.apellidos} onChange={(e) => setNuevoInvolucrado({...nuevoInvolucrado, apellidos: e.target.value})} className="p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm transition-shadow" />
-                  <input type="email" placeholder="Correo electrónico" value={nuevoInvolucrado.correo} onChange={(e) => setNuevoInvolucrado({...nuevoInvolucrado, correo: e.target.value})} className="p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm transition-shadow" />
-                  <input type="tel" placeholder="Teléfono" value={nuevoInvolucrado.telefono} onChange={(e) => setNuevoInvolucrado({...nuevoInvolucrado, telefono: e.target.value})} className="p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm transition-shadow" />
+                  <input type="text" placeholder="Nombre" value={nuevoInvolucrado.nombre} onChange={(e) => setNuevoInvolucrado({...nuevoInvolucrado, nombre: e.target.value})} className="p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[#1a237e] focus:border-[#1a237e] outline-none text-sm transition-shadow" />
+                  <input type="text" placeholder="Apellidos" value={nuevoInvolucrado.apellidos} onChange={(e) => setNuevoInvolucrado({...nuevoInvolucrado, apellidos: e.target.value})} className="p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[#1a237e] focus:border-[#1a237e] outline-none text-sm transition-shadow" />
+                  <input type="email" placeholder="Correo electrónico" value={nuevoInvolucrado.correo} onChange={(e) => setNuevoInvolucrado({...nuevoInvolucrado, correo: e.target.value})} className="p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[#1a237e] focus:border-[#1a237e] outline-none text-sm transition-shadow" />
+                  <input type="tel" placeholder="Teléfono" value={nuevoInvolucrado.telefono} onChange={(e) => setNuevoInvolucrado({...nuevoInvolucrado, telefono: e.target.value})} className="p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[#1a237e] focus:border-[#1a237e] outline-none text-sm transition-shadow" />
                 </div>
-                <textarea placeholder="Comentarios sobre esta persona..." value={nuevoInvolucrado.comentarios} onChange={(e) => setNuevoInvolucrado({...nuevoInvolucrado, comentarios: e.target.value})} rows={3} maxLength={4000} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm transition-shadow resize-none" />
+                <textarea placeholder="Comentarios sobre esta persona..." value={nuevoInvolucrado.comentarios} onChange={(e) => setNuevoInvolucrado({...nuevoInvolucrado, comentarios: e.target.value})} rows={3} maxLength={4000} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[#1a237e] focus:border-[#1a237e] outline-none text-sm transition-shadow resize-none" />
                 <div className="flex justify-between items-center">
                   <p className="text-xs text-slate-400">{nuevoInvolucrado.comentarios.length}/4000</p>
                   <button onClick={() => {
@@ -456,7 +593,7 @@ export default function Wizard() {
                     }
                     setFormData({...formData, involucrados: [...formData.involucrados, nuevoInvolucrado]});
                     setNuevoInvolucrado({ nombre: '', apellidos: '', correo: '', telefono: '', comentarios: '' });
-                  }} className="bg-green-600 text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors shadow-sm">+ Añadir persona</button>
+                  }} className="bg-[#1a237e] text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#283593] transition-colors shadow-sm">+ Añadir persona</button>
                 </div>
               </div>
               {formData.involucrados.length > 0 && (
@@ -482,17 +619,17 @@ export default function Wizard() {
             <>
               <h2 className="text-xl sm:text-2xl font-bold text-center text-slate-800 mb-2">Archivos adjuntos</h2>
               <p className="text-center text-slate-500 text-sm mb-10">Adjunte documentos o evidencias relevantes (opcional)</p>
-              <div className="border-2 border-dashed border-slate-300 rounded-xl p-10 text-center bg-slate-50 hover:border-green-400 hover:bg-green-50/30 transition-colors">
+              <div className="border-2 border-dashed border-slate-300 rounded-xl p-10 text-center bg-slate-50 hover:border-[#1a237e] hover:bg-indigo-50/30 transition-colors">
                 <div className="flex flex-col items-center">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                    <Paperclip size={28} className="text-green-600" />
+                  <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                    <Paperclip size={28} className="text-[#1a237e]" />
                   </div>
                   <p className="text-slate-500 text-sm mb-4">Arrastre sus archivos aquí o haga clic para seleccionar</p>
                   <input type="file" ref={fileInputRef} onChange={(e) => {
                     if (e.target.files && e.target.files.length > 0)
                       setArchivosSubidos([...archivosSubidos, e.target.files[0]]);
                   }} className="hidden" />
-                  <button onClick={() => fileInputRef.current?.click()} className="bg-green-600 text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors shadow-sm">Seleccionar archivo</button>
+                  <button onClick={() => fileInputRef.current?.click()} className="bg-[#1a237e] text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#283593] transition-colors shadow-sm">Seleccionar archivo</button>
                 </div>
               </div>
               {archivosSubidos.length > 0 && (
@@ -516,7 +653,7 @@ export default function Wizard() {
               )}
               <div className="mt-6">
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">Comentarios sobre los archivos</label>
-                <textarea value={formData.archivos.comentarios} onChange={(e) => setFormData({...formData, archivos: {...formData.archivos, comentarios: e.target.value}})} rows={3} maxLength={4000} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm transition-shadow resize-none" placeholder="Describa el contenido de los archivos adjuntos..." />
+                <textarea value={formData.archivos.comentarios} onChange={(e) => setFormData({...formData, archivos: {...formData.archivos, comentarios: e.target.value}})} rows={3} maxLength={4000} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[#1a237e] focus:border-[#1a237e] outline-none text-sm transition-shadow resize-none" placeholder="Describa el contenido de los archivos adjuntos..." />
                 <p className="text-right text-xs text-slate-400 mt-1">{formData.archivos.comentarios.length}/4000</p>
               </div>
             </>
@@ -529,25 +666,27 @@ export default function Wizard() {
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Comentarios adicionales <span className="text-slate-400 text-xs font-normal">(opcional)</span></label>
-                  <textarea value={formData.final.comentarios} onChange={(e) => setFormData({...formData, final: {...formData.final, comentarios: e.target.value}})} rows={5} maxLength={4000} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm transition-shadow resize-none" placeholder="Agregue cualquier información adicional relevante..." />
+                  <textarea value={formData.final.comentarios} onChange={(e) => setFormData({...formData, final: {...formData.final, comentarios: e.target.value}})} rows={5} maxLength={4000} className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[#1a237e] focus:border-[#1a237e] outline-none text-sm transition-shadow resize-none" placeholder="Agregue cualquier información adicional relevante..." />
                   <p className="text-right text-xs text-slate-400 mt-1">{formData.final.comentarios.length}/4000</p>
                 </div>
                 <div className="bg-slate-50 rounded-xl p-6 border border-slate-200 space-y-4">
                   <p className="text-sm font-semibold text-slate-700 mb-2">Términos y condiciones</p>
                   <label className="flex items-start gap-3 cursor-pointer group">
-                    <input type="checkbox" checked={formData.final.aceptoPrivacidad} onChange={(e) => setFormData({...formData, final: {...formData.final, aceptoPrivacidad: e.target.checked}})} className="mt-0.5 w-4 h-4 accent-green-600 rounded" />
+                    <input type="checkbox" checked={formData.final.aceptoPrivacidad} onChange={(e) => setFormData({...formData, final: {...formData.final, aceptoPrivacidad: e.target.checked}})} className="mt-0.5 w-4 h-4 accent-[#1a237e] rounded" />
                     <span className="text-sm text-slate-600 group-hover:text-slate-800 transition-colors">Acepto la <strong>Política de privacidad</strong> del Canal Ético.</span>
                   </label>
                   <label className="flex items-start gap-3 cursor-pointer group">
-                    <input type="checkbox" checked={formData.final.aceptoTerminos} onChange={(e) => setFormData({...formData, final: {...formData.final, aceptoTerminos: e.target.checked}})} className="mt-0.5 w-4 h-4 accent-green-600 rounded" />
+                    <input type="checkbox" checked={formData.final.aceptoTerminos} onChange={(e) => setFormData({...formData, final: {...formData.final, aceptoTerminos: e.target.checked}})} className="mt-0.5 w-4 h-4 accent-[#1a237e] rounded" />
                     <span className="text-sm text-slate-600 group-hover:text-slate-800 transition-colors">Al pulsar <strong>Enviar</strong>, acepto los <strong>términos y condiciones</strong> de uso del Canal Ético.</span>
                   </label>
                 </div>
               </div>
             </>
           )}
+          </>)}
         </div>
 
+        {!enviado && (
         <div className="px-8 py-5 border-t border-slate-200 bg-slate-50 flex justify-between items-center">
           {step > 1 ? (
             <Button variant="secondary" data-action="anterior" onClick={() => setStep(Math.max(1, step - 1))}>← Anterior</Button>
@@ -564,6 +703,11 @@ export default function Wizard() {
             if (step === 2 && formData.modo === 'identificado') {
               if (!formData.denunciante.relacion || !formData.denunciante.nombre || !formData.denunciante.apellidos || !formData.denunciante.correo) {
                 const msg = 'Por favor, completa todos los datos de identificación: relación, nombre, apellidos y correo.';
+                toast.error(msg); narrar(msg); return;
+              }
+              const emailRegex = /^[a-zA-Z0-9](?:[a-zA-Z0-9._%+-]*[a-zA-Z0-9])?@[a-zA-Z0-9](?:[a-zA-Z0-9.-]*[a-zA-Z0-9])?\.[a-zA-Z]{2,}$/;
+              if (!emailRegex.test(formData.denunciante.correo)) {
+                const msg = 'El correo electrónico ingresado no es válido. Verifique que tenga el formato correcto (ejemplo@dominio.com).';
                 toast.error(msg); narrar(msg); return;
               }
             }
@@ -589,16 +733,17 @@ export default function Wizard() {
                     subject: `Nueva denuncia recibida: ${formData.tipo}`,
                     text: `Se ha recibido una nueva denuncia.\n\nEmpresa: ${formData.empresa}\nCentro: ${formData.centro}\nTipo: ${formData.tipo}\nDescripción: ${formData.notificacion.descripcion}`,
                     html: buildEmailHtml(formData),
-                    attachments
+                    attachments,
+                    ...(formData.modo === 'identificado' && formData.denunciante.correo ? { denuncianteEmail: formData.denunciante.correo } : {})
                   })
                 });
                 if (!response.ok) throw new Error('Error al enviar el correo.');
+                const resData = await response.json();
                 toast.dismiss();
                 const okMsg = 'Formulario enviado con éxito. Gracias por su denuncia.';
                 toast.success(okMsg); narrar(okMsg);
-                setFormData(initialForm);
-                setArchivosSubidos([]);
-                setStep(1);
+                setFolioGenerado(resData.folio || '');
+                setEnviado(true);
               } catch (error) {
                 toast.dismiss();
                 const errMsg = error instanceof Error ? error.message : 'Hubo un error al enviar el formulario.';
@@ -607,9 +752,10 @@ export default function Wizard() {
               return;
             }
             setStep(Math.min(6, step + 1));
-          }} className="bg-green-600 text-white px-8 py-2.5 rounded-lg font-semibold text-sm hover:bg-green-700 transition-colors shadow-sm">{step === 6 ? '✓ Enviar denuncia' : 'Siguiente →'}</Button>
+          }} className="bg-[#1a237e] text-white px-8 py-2.5 rounded-lg font-semibold text-sm hover:bg-[#283593] transition-colors shadow-sm">{step === 6 ? '✓ Enviar denuncia' : 'Siguiente →'}</Button>
           </div>
         </div>
+        )}
       </div>
 
       <AccesibilidadPanel step={step} />

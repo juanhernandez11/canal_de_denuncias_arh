@@ -3,6 +3,10 @@
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-arh-blue: #1a237e;
+  --color-arh-blue-light: #283593;
+  --color-arh-orange: #f57c00;
+  --color-arh-yellow: #ffc107;
 }
 
 body {
