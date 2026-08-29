@@ -382,7 +382,7 @@ export default function Wizard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-[#1a237e] to-slate-900 flex items-center justify-center p-4 sm:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-[#1a237e] to-slate-900 flex flex-col items-center justify-center p-4 sm:p-8">
       <Toaster position="top-right" />
       <div className="w-full max-w-4xl bg-white rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.3)] overflow-hidden">
         {/* Header con logo ARH Consultores */}
@@ -823,7 +823,7 @@ function FooterCMS({ siteContent }: { siteContent: Record<string, string> }) {
   if (!texto && logos.length === 0) return null;
 
   return (
-    <footer className="w-full max-w-4xl mt-6 flex flex-col items-center gap-4 pb-2">
+    <footer className="w-full mt-8 flex flex-col items-center justify-center gap-4 pb-2 px-4">
       {logos.length > 0 && (
         <div className="flex flex-wrap items-center justify-center gap-6">
           {logos.map((src, i) => (
