@@ -719,7 +719,14 @@ export default function Wizard() {
                   </label>
                   <label className="flex items-start gap-3 cursor-pointer group">
                     <input type="checkbox" checked={formData.final.aceptoTerminos} onChange={(e) => setFormData({...formData, final: {...formData.final, aceptoTerminos: e.target.checked}})} className="mt-0.5 w-4 h-4 accent-[#1a237e] rounded shrink-0" />
-                    <span className="text-sm text-slate-600 group-hover:text-slate-800 transition-colors">Al pulsar <strong>Enviar</strong>, acepto los <strong>términos y condiciones</strong> de uso del Canal Ético.</span>
+                    {siteContent['home.terminos'] ? (
+                      <span
+                        className="text-sm text-slate-600 group-hover:text-slate-800 transition-colors prose prose-sm max-w-none [&_p]:m-0"
+                        dangerouslySetInnerHTML={{ __html: siteContent['home.terminos'] }}
+                      />
+                    ) : (
+                      <span className="text-sm text-slate-600 group-hover:text-slate-800 transition-colors">Al pulsar <strong>Enviar</strong>, acepto los <strong>términos y condiciones</strong> de uso del Canal Ético.</span>
+                    )}
                   </label>
                 </div>
               </div>

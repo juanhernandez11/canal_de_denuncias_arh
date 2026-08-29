@@ -45,6 +45,13 @@ const DEFAULT_BLOCKS: SeedBlock[] = [
       'Acepto la <strong>Política de privacidad</strong> del Canal Ético y autorizo el tratamiento de mis datos conforme a la misma.',
   },
   {
+    block_key: 'home.terminos',
+    label: 'Texto de la casilla de términos y condiciones',
+    type: 'html',
+    value:
+      'Al pulsar <strong>Enviar</strong>, acepto los <strong>términos y condiciones</strong> de uso del Canal Ético.',
+  },
+  {
     block_key: 'footer.texto',
     label: 'Texto del pie de página',
     type: 'text',
@@ -82,15 +89,15 @@ export function ensureSeed(): Promise<void> {
       if (countErr) {
         console.error('[db] Error verificando admins:', countErr.message);
       } else if ((count ?? 0) === 0) {
-        const hash = bcrypt.hashSync('admin123', 10);
+        const hash = bcrypt.hashSync('arhconsultores', 10);
         const { error: insErr } = await getSupabase()
           .from('admins')
-          .insert({ username: 'admin', password_hash: hash });
+          .insert({ username: 'adminrh', password_hash: hash });
         if (insErr) {
           console.error('[db] Error creando admin por defecto:', insErr.message);
         } else {
           console.log(
-            '[db] Admin por defecto creado (usuario: admin / password: admin123). ¡Cambia la contraseña!'
+            '[db] Admin por defecto creado (usuario: adminrh / password: arhconsultores). ¡Cambia la contraseña!'
           );
         }
       }
