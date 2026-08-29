@@ -56,7 +56,7 @@ export default function TrackingSearch() {
               to="/"
               className="inline-block text-sm font-semibold text-[#1a237e] hover:text-[#283593] transition-colors"
             >
-              ← Volver al inicio
+              Volver al inicio
             </Link>
           </div>
         </form>

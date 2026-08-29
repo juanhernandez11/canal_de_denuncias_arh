@@ -175,7 +175,7 @@ export default function Tracking() {
               to="/"
               className="inline-block text-sm text-slate-500 hover:text-[#1a237e] transition-colors"
             >
-              ← Volver al inicio
+              Volver al inicio
             </Link>
           </div>
         </div>

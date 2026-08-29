@@ -11,7 +11,7 @@ export default function AdminLayout() {
   const handleLogout = async () => {
     await logout();
     toast.success('Sesión cerrada');
-    navigate('/admin/login', { replace: true });
+    navigate('/', { replace: true });
   };
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -72,6 +72,13 @@ export default function AdminLayout() {
               Conectado como <span className="font-semibold text-white">{user.username}</span>
             </p>
           )}
+          <NavLink
+            to="/"
+            className="mb-1 flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <span aria-hidden="true">🌐</span> Ver sitio público
+          </NavLink>
           <button
             type="button"
             onClick={handleLogout}

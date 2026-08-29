@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../AuthContext';
 
@@ -92,6 +92,15 @@ export default function LoginPage() {
             {submitting ? 'Ingresando…' : 'Iniciar sesión'}
           </button>
         </form>
+
+        <div className="mt-6 border-t border-slate-100 pt-5 text-center">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition-colors hover:text-[#1a237e]"
+          >
+            ← Volver al inicio
+          </Link>
+        </div>
       </div>
     </div>
   );
