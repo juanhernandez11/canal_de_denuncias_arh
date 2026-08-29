@@ -64,7 +64,7 @@ insert into public.content_blocks (block_key, label, type, value) values
   ('home.titulo',           'Título principal',              'text',     'Canal Ético de Denuncias'),
   ('home.subtitulo',        'Subtítulo',                     'textarea', 'Reporta de forma segura y confidencial cualquier conducta irregular.'),
   ('home.descripcion',      'Descripción de inicio',         'html',     '<p>Tu denuncia será tratada con total confidencialidad...</p>'),
-  ('home.aviso_privacidad', 'Aviso de privacidad',           'html',     '<p>Los datos proporcionados...</p>'),
+  ('home.aviso_privacidad', 'Texto de la casilla de privacidad', 'html',     'Acepto la <strong>Política de privacidad</strong> del Canal Ético y autorizo el tratamiento de mis datos conforme a la misma.'),
   ('footer.texto',          'Texto del pie de página',       'text',       'ARH Consultores © 2026 — Todos los derechos reservados'),
   ('footer.logos',          'Logos del pie de página',       'image_list', '[]'),
   ('contacto.email',        'Correo de contacto del comité', 'text',       'denunciasconsultoresarh@gmail.com')

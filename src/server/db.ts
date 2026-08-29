@@ -39,9 +39,10 @@ const DEFAULT_BLOCKS: SeedBlock[] = [
   },
   {
     block_key: 'home.aviso_privacidad',
-    label: 'Aviso de privacidad',
+    label: 'Texto de la casilla de privacidad',
     type: 'html',
-    value: '<p>Los datos proporcionados...</p>',
+    value:
+      'Acepto la <strong>Política de privacidad</strong> del Canal Ético y autorizo el tratamiento de mis datos conforme a la misma.',
   },
   {
     block_key: 'footer.texto',

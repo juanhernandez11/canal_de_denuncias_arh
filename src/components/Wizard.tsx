@@ -706,18 +706,19 @@ export default function Wizard() {
                 </div>
                 <div className="bg-slate-50 rounded-xl p-6 border border-slate-200 space-y-4">
                   <p className="text-sm font-semibold text-slate-700 mb-2">Términos y condiciones</p>
-                  {siteContent['home.aviso_privacidad'] && (
-                    <div
-                      className="text-sm text-slate-600 leading-relaxed max-h-48 overflow-y-auto rounded-lg bg-white border border-slate-200 p-4 prose prose-sm max-w-none"
-                      dangerouslySetInnerHTML={{ __html: siteContent['home.aviso_privacidad'] }}
-                    />
-                  )}
                   <label className="flex items-start gap-3 cursor-pointer group">
-                    <input type="checkbox" checked={formData.final.aceptoPrivacidad} onChange={(e) => setFormData({...formData, final: {...formData.final, aceptoPrivacidad: e.target.checked}})} className="mt-0.5 w-4 h-4 accent-[#1a237e] rounded" />
-                    <span className="text-sm text-slate-600 group-hover:text-slate-800 transition-colors">Acepto la <strong>Política de privacidad</strong> del Canal Ético.</span>
+                    <input type="checkbox" checked={formData.final.aceptoPrivacidad} onChange={(e) => setFormData({...formData, final: {...formData.final, aceptoPrivacidad: e.target.checked}})} className="mt-0.5 w-4 h-4 accent-[#1a237e] rounded shrink-0" />
+                    {siteContent['home.aviso_privacidad'] ? (
+                      <span
+                        className="text-sm text-slate-600 group-hover:text-slate-800 transition-colors prose prose-sm max-w-none [&_p]:m-0"
+                        dangerouslySetInnerHTML={{ __html: siteContent['home.aviso_privacidad'] }}
+                      />
+                    ) : (
+                      <span className="text-sm text-slate-600 group-hover:text-slate-800 transition-colors">Acepto la <strong>Política de privacidad</strong> del Canal Ético.</span>
+                    )}
                   </label>
                   <label className="flex items-start gap-3 cursor-pointer group">
-                    <input type="checkbox" checked={formData.final.aceptoTerminos} onChange={(e) => setFormData({...formData, final: {...formData.final, aceptoTerminos: e.target.checked}})} className="mt-0.5 w-4 h-4 accent-[#1a237e] rounded" />
+                    <input type="checkbox" checked={formData.final.aceptoTerminos} onChange={(e) => setFormData({...formData, final: {...formData.final, aceptoTerminos: e.target.checked}})} className="mt-0.5 w-4 h-4 accent-[#1a237e] rounded shrink-0" />
                     <span className="text-sm text-slate-600 group-hover:text-slate-800 transition-colors">Al pulsar <strong>Enviar</strong>, acepto los <strong>términos y condiciones</strong> de uso del Canal Ético.</span>
                   </label>
                 </div>
