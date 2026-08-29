@@ -98,7 +98,7 @@ export default function LoginPage() {
             to="/"
             className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition-colors hover:text-[#1a237e]"
           >
-            ← Volver al inicio
+           Volver al inicio
           </Link>
         </div>
       </div>

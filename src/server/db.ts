@@ -50,6 +50,12 @@ const DEFAULT_BLOCKS: SeedBlock[] = [
     value: 'ARH Consultores © 2026 — Todos los derechos reservados',
   },
   {
+    block_key: 'footer.logos',
+    label: 'Logos del pie de página',
+    type: 'image_list',
+    value: '[]',
+  },
+  {
     block_key: 'contacto.email',
     label: 'Correo de contacto del comité',
     type: 'text',

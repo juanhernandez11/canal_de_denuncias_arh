@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { Home, Mail, PanelBottom, LayoutList, RefreshCw, Save, Code, Eye, Bold, Italic, List, Link as LinkIcon } from 'lucide-react';
+import { Home, Mail, PanelBottom, LayoutList, RefreshCw, Save, Code, Eye, Bold, Italic, List, Link as LinkIcon, ImagePlus, Trash2, Upload } from 'lucide-react';
 import type { ContentBlock } from '../../types/admin';
 
 interface SectionDef {
@@ -207,6 +207,10 @@ function BlockEditor({ block, value, dirty, saving, onChange, onSave }: BlockEdi
         <HtmlEditor value={value} onChange={onChange} />
       )}
 
+      {block.type === 'image_list' && (
+        <ImageListEditor value={value} onChange={onChange} />
+      )}
+
       <div className="flex justify-end mt-4">
         <button
           onClick={onSave}
@@ -305,5 +309,148 @@ function ToolbarBtn({ onClick, title, children }: { onClick: () => void; title: 
     >
       {children}
     </button>
+  );
+}
+
+interface ImageListEditorProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+// Editor de una lista de imágenes/logos. El valor es un JSON array de URLs
+// (pueden ser URLs http(s) o data URLs base64 de archivos subidos).
+function ImageListEditor({ value, onChange }: ImageListEditorProps) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [urlInput, setUrlInput] = useState('');
+
+  let logos: string[] = [];
+  try {
+    const parsed = JSON.parse(value || '[]');
+    if (Array.isArray(parsed)) logos = parsed.filter((x) => typeof x === 'string');
+  } catch {
+    logos = [];
+  }
+
+  const update = (next: string[]) => onChange(JSON.stringify(next));
+
+  const addFromFiles = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const readers = Array.from(files).map(
+      (file) =>
+        new Promise<string>((resolve, reject) => {
+          if (!file.type.startsWith('image/')) {
+            reject(new Error('Solo se permiten imágenes'));
+            return;
+          }
+          // Limitar a ~1.5MB para no saturar la base de datos con base64.
+          if (file.size > 1.5 * 1024 * 1024) {
+            reject(new Error(`«${file.name}» supera 1.5 MB`));
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error('No se pudo leer el archivo'));
+          reader.readAsDataURL(file);
+        })
+    );
+    Promise.allSettled(readers).then((results) => {
+      const nuevos: string[] = [];
+      for (const r of results) {
+        if (r.status === 'fulfilled') nuevos.push(r.value);
+        else toast.error(r.reason instanceof Error ? r.reason.message : 'Error al subir');
+      }
+      if (nuevos.length) update([...logos, ...nuevos]);
+    });
+    if (fileRef.current) fileRef.current.value = '';
+  };
+
+  const addFromUrl = () => {
+    const url = urlInput.trim();
+    if (!url) return;
+    if (!/^https?:\/\//i.test(url)) {
+      toast.error('La URL debe empezar con http:// o https://');
+      return;
+    }
+    update([...logos, url]);
+    setUrlInput('');
+  };
+
+  const remove = (i: number) => update(logos.filter((_, idx) => idx !== i));
+
+  return (
+    <div className="space-y-4">
+      {/* Vista previa de logos */}
+      {logos.length > 0 ? (
+        <div className="flex flex-wrap gap-3">
+          {logos.map((src, i) => (
+            <div
+              key={i}
+              className="group relative flex h-20 w-28 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 p-2"
+            >
+              <img src={src} alt={`Logo ${i + 1}`} className="max-h-full max-w-full object-contain" />
+              <button
+                type="button"
+                onClick={() => remove(i)}
+                title="Quitar"
+                className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-white opacity-0 shadow transition-opacity group-hover:opacity-100"
+              >
+                <Trash2 size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm text-slate-400">
+          Aún no hay logos. Sube una imagen o pega una URL.
+        </p>
+      )}
+
+      {/* Acciones: subir archivo */}
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(e) => addFromFiles(e.target.files)}
+        />
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          className="inline-flex items-center gap-2 rounded-lg border border-[#1a237e] px-3 py-2 text-sm font-semibold text-[#1a237e] hover:bg-[#1a237e]/5"
+        >
+          <Upload size={15} /> Subir imagen
+        </button>
+        <span className="text-xs text-slate-400">o</span>
+        {/* Pegar URL */}
+        <div className="flex flex-1 min-w-[200px] items-center gap-2">
+          <input
+            type="url"
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                addFromUrl();
+              }
+            }}
+            placeholder="https://…/logo.png"
+            className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#1a237e] focus:ring-2 focus:ring-[#1a237e]/20"
+          />
+          <button
+            type="button"
+            onClick={addFromUrl}
+            className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
+          >
+            <ImagePlus size={15} /> Añadir
+          </button>
+        </div>
+      </div>
+      <p className="text-xs text-slate-400">
+        Formatos de imagen (PNG, JPG, SVG). Máx. 1.5 MB por archivo. Los logos aparecerán en el pie
+        de página del sitio.
+      </p>
+    </div>
   );
 }

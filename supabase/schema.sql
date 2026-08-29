@@ -65,8 +65,9 @@ insert into public.content_blocks (block_key, label, type, value) values
   ('home.subtitulo',        'Subtítulo',                     'textarea', 'Reporta de forma segura y confidencial cualquier conducta irregular.'),
   ('home.descripcion',      'Descripción de inicio',         'html',     '<p>Tu denuncia será tratada con total confidencialidad...</p>'),
   ('home.aviso_privacidad', 'Aviso de privacidad',           'html',     '<p>Los datos proporcionados...</p>'),
-  ('footer.texto',          'Texto del pie de página',       'text',     'ARH Consultores © 2026 — Todos los derechos reservados'),
-  ('contacto.email',        'Correo de contacto del comité', 'text',     'denunciasconsultoresarh@gmail.com')
+  ('footer.texto',          'Texto del pie de página',       'text',       'ARH Consultores © 2026 — Todos los derechos reservados'),
+  ('footer.logos',          'Logos del pie de página',       'image_list', '[]'),
+  ('contacto.email',        'Correo de contacto del comité', 'text',       'denunciasconsultoresarh@gmail.com')
 on conflict (block_key) do nothing;
 
 -- ----------------------------------------------------------------------------

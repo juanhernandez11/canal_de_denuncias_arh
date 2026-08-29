@@ -34,7 +34,7 @@ export interface Denuncia {
   updated_at: string;
 }
 
-export type DenunciaType = 'text' | 'textarea' | 'html';
+export type DenunciaType = 'text' | 'textarea' | 'html' | 'image_list';
 
 export interface ContentBlock {
   id: number;

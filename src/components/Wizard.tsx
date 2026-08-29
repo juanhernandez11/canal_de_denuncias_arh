@@ -706,6 +706,12 @@ export default function Wizard() {
                 </div>
                 <div className="bg-slate-50 rounded-xl p-6 border border-slate-200 space-y-4">
                   <p className="text-sm font-semibold text-slate-700 mb-2">Términos y condiciones</p>
+                  {siteContent['home.aviso_privacidad'] && (
+                    <div
+                      className="text-sm text-slate-600 leading-relaxed max-h-48 overflow-y-auto rounded-lg bg-white border border-slate-200 p-4 prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: siteContent['home.aviso_privacidad'] }}
+                    />
+                  )}
                   <label className="flex items-start gap-3 cursor-pointer group">
                     <input type="checkbox" checked={formData.final.aceptoPrivacidad} onChange={(e) => setFormData({...formData, final: {...formData.final, aceptoPrivacidad: e.target.checked}})} className="mt-0.5 w-4 h-4 accent-[#1a237e] rounded" />
                     <span className="text-sm text-slate-600 group-hover:text-slate-800 transition-colors">Acepto la <strong>Política de privacidad</strong> del Canal Ético.</span>
@@ -764,7 +770,7 @@ export default function Wizard() {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
-                    to: 'denunciasconsultoresarh@gmail.com',
+                    to: siteContent['contacto.email'] || 'denunciasconsultoresarh@gmail.com',
                     subject: `Nueva denuncia recibida: ${formData.tipo}`,
                     text: `Se ha recibido una nueva denuncia.\n\nEmpresa: ${formData.empresa}\nCentro: ${formData.centro}\nTipo: ${formData.tipo}\nDescripción: ${formData.notificacion.descripcion}`,
                     html: buildEmailHtml(formData),
@@ -795,7 +801,44 @@ export default function Wizard() {
         )}
       </div>
 
+      {/* Pie de página editable desde el panel admin (texto + logos) */}
+      <FooterCMS siteContent={siteContent} />
+
       <AccesibilidadPanel step={step} />
     </div>
+  );
+}
+
+// Pie de página alimentado por el CMS: texto y logos editables desde /admin/contenido.
+function FooterCMS({ siteContent }: { siteContent: Record<string, string> }) {
+  const texto = siteContent['footer.texto'] || '';
+  let logos: string[] = [];
+  try {
+    const parsed = JSON.parse(siteContent['footer.logos'] || '[]');
+    if (Array.isArray(parsed)) logos = parsed.filter((x) => typeof x === 'string');
+  } catch {
+    logos = [];
+  }
+
+  if (!texto && logos.length === 0) return null;
+
+  return (
+    <footer className="w-full max-w-4xl mt-6 flex flex-col items-center gap-4 pb-2">
+      {logos.length > 0 && (
+        <div className="flex flex-wrap items-center justify-center gap-6">
+          {logos.map((src, i) => (
+            <img
+              key={i}
+              src={src}
+              alt={`Logo ${i + 1}`}
+              className="h-10 sm:h-12 object-contain opacity-90"
+            />
+          ))}
+        </div>
+      )}
+      {texto && (
+        <p className="text-center text-indigo-200/70 text-xs sm:text-sm">{texto}</p>
+      )}
+    </footer>
   );
 }
