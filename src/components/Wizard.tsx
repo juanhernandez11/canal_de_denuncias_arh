@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { LayoutGrid, User, Calendar, Eye, Paperclip, CheckSquare } from 'lucide-react';
+import { LayoutGrid, User, Calendar, Eye, Paperclip, CheckSquare, Search, ShieldCheck } from 'lucide-react';
 import Button from './shared/Button';
 import { Toaster, toast } from 'react-hot-toast';
 import AccesibilidadPanel, { hablar, lectorActivo } from './AccesibilidadPanel';
@@ -775,17 +775,20 @@ export default function Wizard() {
       </div>
 
       {/* Pie con accesos: consultar folio y panel de administración */}
-      <div className="w-full max-w-4xl mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 px-2">
+      <div className="w-full max-w-4xl mt-8 flex flex-col items-center gap-4">
         <Link
           to="/tracking"
-          className="text-indigo-200 hover:text-white text-sm font-medium transition-colors"
+          className="group inline-flex items-center gap-2.5 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 text-white text-sm font-semibold px-6 py-3 rounded-full backdrop-blur-md shadow-lg transition-all duration-200 hover:-translate-y-0.5"
         >
-          🔎 Consultar el estatus de mi folio
+          <Search className="w-4 h-4 text-amber-300 group-hover:scale-110 transition-transform" />
+          Consultar el estatus de mi folio
         </Link>
+
         <Link
           to="/admin/login"
-          className="text-indigo-300/70 hover:text-white text-xs transition-colors"
+          className="inline-flex items-center gap-1.5 text-indigo-300/50 hover:text-indigo-200 text-xs font-medium transition-colors"
         >
+          <ShieldCheck className="w-3.5 h-3.5" />
           Acceso administradores
         </Link>
       </div>
