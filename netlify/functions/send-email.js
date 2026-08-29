@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const { insertDenuncia, extractDenunciaFields } = require('./_data');
 
 function generarFolio() {
   const year = new Date().getFullYear();
@@ -112,6 +113,14 @@ exports.handler = async (event) => {
         text: `Su denuncia ha sido recibida exitosamente.\n\nNúmero de folio: ${folio}\n\nGuarde este folio para seguimiento de su caso.\n\nARH Consultores - Canal de Denuncias`,
         html: buildConfirmacionHtml(folio),
       });
+    }
+
+    // Persistir la denuncia en Supabase (no rompe el flujo si falla)
+    try {
+      const body = JSON.parse(event.body);
+      await insertDenuncia({ folio, ...extractDenunciaFields(body) });
+    } catch (dbError) {
+      console.error('Error persistiendo denuncia (folio enviado):', dbError);
     }
 
     return {

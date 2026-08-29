@@ -4,7 +4,12 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import path from "path";
 import crypto from "crypto";
+import cookieParser from "cookie-parser";
+import { registerAdminRoutes } from "./src/server/routes.ts";
+import { insertDenuncia } from "./src/server/db.ts";
 
+// Carga variables de entorno. Prioridad: .env.local sobre .env
+dotenv.config({ path: ".env.local" });
 dotenv.config();
 
 function generateFolio(): string {
@@ -111,6 +116,9 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(express.json({ limit: '50mb' }));
+  app.use(cookieParser());
+
+  registerAdminRoutes(app);
 
   const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -148,6 +156,57 @@ async function startServer() {
           subject: `Confirmación de denuncia recibida - Folio ${folio}`,
           html: confirmationHtml,
         });
+      }
+
+      // 3. Persistir la denuncia en la base de datos (no rompe el flujo)
+      try {
+        const denuncia = (req.body?.denuncia ?? {}) as Record<string, unknown>;
+        const pick = (...keys: string[]): string | null => {
+          for (const k of keys) {
+            const v = denuncia[k];
+            if (typeof v === "string" && v.trim()) return v;
+            if (typeof v === "number") return String(v);
+          }
+          return null;
+        };
+
+        const hasDenuncia = Object.keys(denuncia).length > 0;
+
+        // Estructuras anidadas reales del Wizard (formData.denunciante.*, formData.notificacion.*)
+        const denunciante = (denuncia.denunciante ?? {}) as Record<string, unknown>;
+        const notificacion = (denuncia.notificacion ?? {}) as Record<string, unknown>;
+        const str = (v: unknown): string | null =>
+          typeof v === "string" && v.trim() ? v : null;
+        const nombreCompleto =
+          [str(denunciante.nombre), str(denunciante.apellidos)]
+            .filter(Boolean)
+            .join(" ") || null;
+
+        await insertDenuncia({
+          folio,
+          tipo: pick("tipo", "tipoDenuncia", "categoria"),
+          empresa: pick("empresa", "compania", "company"),
+          centro: pick("centro", "centroTrabajo", "sucursal"),
+          modo:
+            pick("modo", "modalidad") ??
+            (denuncianteEmail ? "identificado" : "anonimo"),
+          denunciante_nombre:
+            nombreCompleto ?? pick("denuncianteNombre", "nombre", "denunciante"),
+          denunciante_correo:
+            str(denunciante.correo) ??
+            pick("denuncianteCorreo", "correo", "email") ??
+            (typeof denuncianteEmail === "string" ? denuncianteEmail : null),
+          descripcion:
+            str(notificacion.descripcion) ??
+            pick("descripcion", "detalle", "hechos") ??
+            text ??
+            null,
+          payload_json: JSON.stringify(
+            hasDenuncia ? denuncia : { subject, text }
+          ),
+        });
+      } catch (dbError) {
+        console.error("Error persistiendo denuncia (folio enviado):", dbError);
       }
 
       res.status(200).json({ message: "Email sent successfully", folio });

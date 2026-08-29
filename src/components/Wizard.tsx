@@ -332,6 +332,19 @@ export default function Wizard() {
   const [folioGenerado, setFolioGenerado] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Contenido editable del CMS (bloques home.*, footer.*, etc). Se carga desde
+  // GET /api/content al montar. Se deja preparado en estado para alimentar textos
+  // del sitio de forma segura; el acceso es defensivo (fallback a undefined).
+  const [siteContent, setSiteContent] = useState<Record<string, string>>({});
+  useEffect(() => {
+    let activo = true;
+    fetch('/api/content')
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((data: Record<string, string>) => { if (activo && data && typeof data === 'object') setSiteContent(data); })
+      .catch(() => { /* Silencioso: si el CMS no responde se usan los textos por defecto. */ });
+    return () => { activo = false; };
+  }, []);
+
   // Persistir paso y formulario en sessionStorage
   useEffect(() => { sessionStorage.setItem('wizard-step', String(step)); }, [step]);
   useEffect(() => { sessionStorage.setItem('wizard-form', JSON.stringify(formData)); }, [formData]);
@@ -375,8 +388,8 @@ export default function Wizard() {
         <div className="bg-gradient-to-r from-[#1a237e] to-[#283593] px-8 py-6 flex items-center gap-5">
           <img src="/logo-arh.png" alt="ARH Consultores" className="h-12 object-contain shrink-0" />
           <div className="border-l border-white/30 pl-5">
-            <h1 className="text-white font-bold text-lg tracking-tight">Canal Ético de Denuncias</h1>
-            <p className="text-indigo-200 text-sm mt-0.5">Enviar comunicación</p>
+            <h1 className="text-white font-bold text-lg tracking-tight">{siteContent['home.titulo'] || 'Canal Ético de Denuncias'}</h1>
+            <p className="text-indigo-200 text-sm mt-0.5">{siteContent['home.subtitulo'] || 'Enviar comunicación'}</p>
           </div>
         </div>
 
@@ -734,6 +747,8 @@ export default function Wizard() {
                     text: `Se ha recibido una nueva denuncia.\n\nEmpresa: ${formData.empresa}\nCentro: ${formData.centro}\nTipo: ${formData.tipo}\nDescripción: ${formData.notificacion.descripcion}`,
                     html: buildEmailHtml(formData),
                     attachments,
+                    // Objeto completo del formulario para que el backend lo persista en la tabla `denuncias`.
+                    denuncia: formData,
                     ...(formData.modo === 'identificado' && formData.denunciante.correo ? { denuncianteEmail: formData.denunciante.correo } : {})
                   })
                 });

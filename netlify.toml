@@ -6,12 +6,33 @@
 [functions]
   node_bundler = "esbuild"
 
+# Envío de correo + persistencia de la denuncia
 [[redirects]]
   from = "/api/send-email"
   to = "/.netlify/functions/send-email"
   status = 200
   force = true
 
+# API del panel admin, CMS y tracking -> función admin
+[[redirects]]
+  from = "/api/admin/*"
+  to = "/.netlify/functions/admin/api/admin/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/content"
+  to = "/.netlify/functions/admin/api/content"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/folios/*"
+  to = "/.netlify/functions/admin/api/folios/:splat"
+  status = 200
+  force = true
+
+# SPA fallback (debe ir al final)
 [[redirects]]
   from = "/*"
   to = "/index.html"
