@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual Técnico e Instalación — Canal de Denuncias ARH</title>
+<link rel="stylesheet" href="_estilos-pdf.css">
+</head>
+<body>
+
+<div class="print-hint no-print">
+  📄 Para guardar como PDF: presiona <strong>Ctrl+P</strong> (o Cmd+P en Mac) y elige "Guardar como PDF".
+  <button onclick="window.print()">Imprimir / Guardar PDF</button>
+</div>
+
+<!-- PORTADA -->
+<div class="portada">
+  <div class="logo-box">
+    <img src="../public/logo-arh.png" alt="ARH Consultores">
+  </div>
+  <h1>Manual Técnico</h1>
+  <p class="subtitulo">Instalación, Configuración y Despliegue</p>
+  <p style="font-size:12pt;">Canal Ético de Denuncias</p>
+  <p class="tipo-doc">Guía dirigida al equipo técnico / responsable de TI</p>
+  <p class="meta">ARH Consultores © 2026 — Documento confidencial</p>
+</div>
+
+<!-- ÍNDICE -->
+<div class="indice">
+  <h2>Contenido</h2>
+  <ol>
+    <li>Arquitectura general del sistema</li>
+    <li>Tecnologías utilizadas (stack)</li>
+    <li>Requisitos previos</li>
+    <li>Instalación local (desarrollo)</li>
+    <li>Configuración de Supabase (base de datos)</li>
+    <li>Variables de entorno</li>
+    <li>Configuración del correo (Gmail)</li>
+    <li>Despliegue en producción (Netlify)</li>
+    <li>Estructura de la base de datos</li>
+    <li>Mantenimiento y respaldos</li>
+    <li>Seguridad</li>
+  </ol>
+</div>
+
+<h1 class="titulo-seccion">1. Arquitectura general del sistema</h1>
+<p>
+El sistema es una aplicación web de página única (SPA) construida con React, respaldada por una
+base de datos en la nube (Supabase / PostgreSQL) y un backend que funciona tanto como servidor
+Express (en desarrollo) como funciones serverless (en producción con Netlify).
+</p>
+<pre><code>┌──────────────────────────────────────────────────────┐
+│                    USUARIOS                           │
+│   Denunciante          Administrador (Comité)        │
+└─────────┬───────────────────────┬────────────────────┘
+          │                       │
+          ▼                       ▼
+┌──────────────────────────────────────────────────────┐
+│         FRONTEND (React + Vite + Tailwind)           │
+│  - Wizard de denuncia (6 pasos)                      │
+│  - Consulta de folio (tracking)                      │
+│  - Panel admin (folios + CMS)                        │
+└─────────────────────────┬────────────────────────────┘
+                          │ /api/*
+                          ▼
+┌──────────────────────────────────────────────────────┐
+│   BACKEND                                             │
+│   Desarrollo: Express (server.ts)                    │
+│   Producción: Netlify Functions                      │
+│   - send-email  (envío correo + guarda denuncia)     │
+│   - admin       (folios, CMS, tracking, auth)        │
+└─────────────┬───────────────────────┬────────────────┘
+              ▼                       ▼
+     ┌────────────────┐      ┌──────────────────┐
+     │  SUPABASE       │      │  GMAIL (SMTP)    │
+     │  (PostgreSQL)   │      │  notificaciones  │
+     └────────────────┘      └──────────────────┘</code></pre>
+
+<h1 class="titulo-seccion">2. Tecnologías utilizadas (stack)</h1>
+<table>
+<tr><th>Capa</th><th>Tecnología</th></tr>
+<tr><td>Frontend</td><td>React 19, Vite 6, Tailwind CSS 4, React Router 7</td></tr>
+<tr><td>Lenguaje</td><td>TypeScript 5.8</td></tr>
+<tr><td>Backend (dev)</td><td>Express 4, ejecutado con <code>tsx</code></td></tr>
+<tr><td>Backend (prod)</td><td>Netlify Functions (serverless)</td></tr>
+<tr><td>Base de datos</td><td>Supabase (PostgreSQL) vía <code>@supabase/supabase-js</code></td></tr>
+<tr><td>Autenticación admin</td><td>JWT (<code>jsonwebtoken</code>) en cookie httpOnly</td></tr>
+<tr><td>Contraseñas</td><td>Hash con <code>bcryptjs</code></td></tr>
+<tr><td>Correo</td><td>Nodemailer (Gmail SMTP)</td></tr>
+<tr><td>Íconos / UI</td><td>lucide-react, react-hot-toast</td></tr>
+</table>
+
+<h1 class="titulo-seccion">3. Requisitos previos</h1>
+<ul>
+<li><strong>Node.js</strong> (versión 18 o superior).</li>
+<li>Una cuenta de <strong>Supabase</strong> (el plan gratuito es suficiente).</li>
+<li>Una cuenta de <strong>Gmail</strong> con contraseña de aplicación para el envío de correos.</li>
+<li>Una cuenta de <strong>Netlify</strong> para el despliegue en producción (opcional).</li>
+<li>Git instalado (para clonar el repositorio).</li>
+</ul>
+
+<h1 class="titulo-seccion">4. Instalación local (desarrollo)</h1>
+<div class="paso">
+<span class="numero">1</span> <strong>Clonar el repositorio</strong>
+<pre><code>git clone https://github.com/juanhernandez11/canal_de_denuncias_arh.git
+cd canal_de_denuncias_arh</code></pre>
+</div>
+<div class="paso">
+<span class="numero">2</span> <strong>Instalar dependencias</strong>
+<pre><code>npm install</code></pre>
+</div>
+<div class="paso">
+<span class="numero">3</span> <strong>Configurar variables de entorno</strong> (ver sección 6)
+<pre><code>cp .env.example .env.local
+# editar .env.local con tus credenciales</code></pre>
+</div>
+<div class="paso">
+<span class="numero">4</span> <strong>Ejecutar la aplicación</strong>
+<pre><code>npm run dev</code></pre>
+La aplicación quedará disponible en <code>http://localhost:3000</code>.
+</div>
+
+<h3>Scripts disponibles</h3>
+<table>
+<tr><th>Comando</th><th>Descripción</th></tr>
+<tr><td><code>npm run dev</code></td><td>Servidor de desarrollo (Express + Vite).</td></tr>
+<tr><td><code>npm run build</code></td><td>Genera el build de producción en <code>dist/</code>.</td></tr>
+<tr><td><code>npm run preview</code></td><td>Previsualiza el build de producción.</td></tr>
+<tr><td><code>npm run lint</code></td><td>Verificación de tipos (<code>tsc --noEmit</code>).</td></tr>
+<tr><td><code>npm run clean</code></td><td>Elimina la carpeta <code>dist/</code>.</td></tr>
+</table>
+
+<h1 class="titulo-seccion">5. Configuración de Supabase (base de datos)</h1>
+<div class="paso">
+<span class="numero">1</span> Crea un proyecto nuevo en <a href="https://supabase.com">supabase.com</a>.
+</div>
+<div class="paso">
+<span class="numero">2</span> En el dashboard, abre <strong>SQL Editor</strong>.
+</div>
+<div class="paso">
+<span class="numero">3</span> Copia y pega el contenido del archivo <code>supabase/schema.sql</code> del proyecto y
+presiona <strong>Run</strong>. Esto crea las tablas <code>admins</code>, <code>denuncias</code> y
+<code>content_blocks</code>, siembra el contenido editable por defecto y habilita RLS.
+</div>
+<div class="nota">
+El usuario administrador por defecto (<code>admin</code> / <code>admin123</code>) <strong>no</strong>
+se crea en el SQL; lo crea automáticamente el servidor la primera vez que se conecta a Supabase.
+</div>
+
+<h1 class="titulo-seccion">6. Variables de entorno</h1>
+<p>Copia <code>.env.example</code> a <code>.env.local</code> y completa los siguientes valores:</p>
+<table>
+<tr><th>Variable</th><th>Descripción</th></tr>
+<tr><td><code>EMAIL_USER</code></td><td>Cuenta de Gmail para enviar notificaciones.</td></tr>
+<tr><td><code>EMAIL_PASS</code></td><td>Contraseña de aplicación de Gmail (no la contraseña normal).</td></tr>
+<tr><td><code>SUPABASE_URL</code></td><td>Project Settings → API → Project URL.</td></tr>
+<tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td>Project Settings → API → service_role (SECRETA).</td></tr>
+<tr><td><code>JWT_SECRET</code></td><td>Cadena larga y aleatoria para firmar las sesiones del admin.</td></tr>
+</table>
+<div class="importante">
+<strong>⚠ La <code>service_role key</code> es secreta.</strong> Solo se usa en el backend. Nunca la
+expongas en el cliente ni la subas al repositorio. El archivo <code>.env.local</code> está
+excluido en <code>.gitignore</code>.
+</div>
+
+<h1 class="titulo-seccion">7. Configuración del correo (Gmail)</h1>
+<p>Para que el sistema envíe correos de notificación y confirmación:</p>
+<div class="paso">
+<span class="numero">1</span> Activa la <strong>verificación en dos pasos</strong> en la cuenta de
+Gmail.
+</div>
+<div class="paso">
+<span class="numero">2</span> Genera una <strong>contraseña de aplicación</strong> desde la
+configuración de seguridad de Google.
+</div>
+<div class="paso">
+<span class="numero">3</span> Usa esa contraseña de aplicación en la variable <code>EMAIL_PASS</code>
+(no uses tu contraseña normal de Gmail).
+</div>
+<p>
+Cuando se envía una denuncia, el sistema notifica al comité y, si el denunciante se identificó,
+también le envía un correo de confirmación con su folio.
+</p>
+
+<h1 class="titulo-seccion">8. Despliegue en producción (Netlify)</h1>
+<p>
+El proyecto incluye <code>netlify.toml</code> preconfigurado. La capa de datos usa la API REST de
+Supabase, por lo que funciona en entornos serverless.
+</p>
+<div class="paso">
+<span class="numero">1</span> Conecta el repositorio de GitHub a Netlify.
+</div>
+<div class="paso">
+<span class="numero">2</span> Netlify detectará la configuración: comando de build
+<code>npm run build</code>, carpeta de publicación <code>dist</code>, funciones en
+<code>netlify/functions</code>.
+</div>
+<div class="paso">
+<span class="numero">3</span> En Netlify → Site settings → Environment variables, define las
+<strong>mismas variables de entorno</strong> de la sección 6.
+</div>
+<div class="paso">
+<span class="numero">4</span> Despliega. Netlify redirige automáticamente:
+<code>/api/send-email</code>, <code>/api/admin/*</code>, <code>/api/content</code> y
+<code>/api/folios/*</code> a las funciones serverless correspondientes.
+</div>
+
+<h1 class="titulo-seccion">9. Estructura de la base de datos</h1>
+<h3>Tabla: <code>admins</code></h3>
+<table>
+<tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr>
+<tr><td>id</td><td>bigint</td><td>Identificador único.</td></tr>
+<tr><td>username</td><td>text</td><td>Nombre de usuario (único).</td></tr>
+<tr><td>password_hash</td><td>text</td><td>Contraseña cifrada con bcrypt.</td></tr>
+<tr><td>created_at</td><td>timestamptz</td><td>Fecha de creación.</td></tr>
+</table>
+
+<h3>Tabla: <code>denuncias</code></h3>
+<table>
+<tr><th>Campo</th><th>Descripción</th></tr>
+<tr><td>folio</td><td>Identificador único de la denuncia (ARH-2026-XXXXX).</td></tr>
+<tr><td>estatus</td><td>recibida / en_revision / en_investigacion / resuelta / desestimada.</td></tr>
+<tr><td>tipo, empresa, centro, modo</td><td>Datos generales de la denuncia.</td></tr>
+<tr><td>denunciante_nombre, denunciante_correo</td><td>Datos del denunciante (si se identificó).</td></tr>
+<tr><td>descripcion</td><td>Descripción de los hechos.</td></tr>
+<tr><td>payload_json</td><td>JSON completo con todos los datos del formulario.</td></tr>
+<tr><td>notas_admin</td><td>Notas internas del comité.</td></tr>
+<tr><td>created_at, updated_at</td><td>Fechas de creación y actualización.</td></tr>
+</table>
+
+<h3>Tabla: <code>content_blocks</code></h3>
+<p>Almacena los textos editables del sitio (CMS): título, subtítulo, aviso de privacidad, pie de
+página, correo de contacto, etc.</p>
+
+<h1 class="titulo-seccion">10. Mantenimiento y respaldos</h1>
+<ul>
+<li><strong>Respaldos:</strong> Supabase realiza respaldos automáticos. Se recomienda además
+exportar periódicamente la tabla <code>denuncias</code> desde el SQL Editor.</li>
+<li><strong>Actualización de dependencias:</strong> Ejecuta <code>npm outdated</code> y actualiza
+con precaución, verificando con <code>npm run lint</code> y <code>npm run build</code>.</li>
+<li><strong>Monitoreo:</strong> Revisa los logs de Netlify Functions y de Supabase ante cualquier
+incidencia.</li>
+</ul>
+
+<h1 class="titulo-seccion">11. Seguridad</h1>
+<table>
+<tr><th>Aspecto</th><th>Implementación</th></tr>
+<tr><td>Autenticación admin</td><td>JWT firmado con <code>JWT_SECRET</code>, en cookie httpOnly.</td></tr>
+<tr><td>Contraseñas</td><td>Cifradas con bcrypt (nunca en texto plano).</td></tr>
+<tr><td>Base de datos</td><td>RLS habilitado; el backend usa service_role (acceso controlado).</td></tr>
+<tr><td>Rutas admin</td><td>Protegidas con middleware <code>requireAuth</code>.</td></tr>
+<tr><td>Tracking público</td><td>Solo expone estatus y fecha; nunca datos sensibles.</td></tr>
+<tr><td>Secretos</td><td>En variables de entorno, fuera del repositorio.</td></tr>
+</table>
+<div class="importante">
+<strong>Acciones obligatorias antes de producción:</strong>
+<ul>
+<li>Cambiar la contraseña del usuario <code>admin</code> por defecto.</li>
+<li>Definir un <code>JWT_SECRET</code> largo y aleatorio.</li>
+<li>Verificar que <code>.env.local</code> no esté versionado.</li>
+</ul>
+</div>
+
+<div class="footer-doc">
+<p><strong>ARH Consultores — Canal Ético de Denuncias</strong></p>
+<p>Manual Técnico e Instalación · Versión 1.0 · 2026 · Documento confidencial</p>
+</div>
+
+</body>
+</html>

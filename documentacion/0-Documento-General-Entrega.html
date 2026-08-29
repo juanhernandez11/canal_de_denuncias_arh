@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documento de Entrega — Canal de Denuncias ARH</title>
+<link rel="stylesheet" href="_estilos-pdf.css">
+</head>
+<body>
+
+<div class="print-hint no-print">
+  📄 Para guardar como PDF: presiona <strong>Ctrl+P</strong> (o Cmd+P en Mac) y elige "Guardar como PDF".
+  <button onclick="window.print()">Imprimir / Guardar PDF</button>
+</div>
+
+<!-- PORTADA -->
+<div class="portada">
+  <div class="logo-box">
+    <img src="../public/logo-arh.png" alt="ARH Consultores">
+  </div>
+  <h1>Canal Ético de Denuncias</h1>
+  <p class="subtitulo">Documento de Entrega y Descripción General</p>
+  <p style="font-size:12pt;">Sistema web de denuncias con panel administrativo</p>
+  <p class="tipo-doc">Entregable para el cliente — ARH Consultores</p>
+  <p class="meta">© 2026 — Documento confidencial</p>
+</div>
+
+<h1 class="titulo-seccion">Descripción general del sistema</h1>
+<p>
+El <strong>Canal Ético de Denuncias</strong> es una aplicación web integral que permite a cualquier
+persona reportar de forma segura y confidencial conductas irregulares dentro de la organización,
+así como dar seguimiento al estado de su reporte mediante un folio único. El sistema incluye un
+<strong>panel de administración</strong> para que el Comité de Ética gestione las denuncias y
+administre el contenido del sitio.
+</p>
+
+<h2>Componentes principales</h2>
+<table>
+<tr><th>Módulo</th><th>Función</th><th>Usuario</th></tr>
+<tr><td>Formulario de denuncia (Wizard)</td><td>Registro guiado en 6 pasos, anónimo o identificado.</td><td>Público / Denunciante</td></tr>
+<tr><td>Consulta de folio (Tracking)</td><td>Consulta del estatus de una denuncia mediante su folio.</td><td>Público / Denunciante</td></tr>
+<tr><td>Panel de Folios</td><td>Gestión, búsqueda, filtrado y actualización de denuncias.</td><td>Administrador</td></tr>
+<tr><td>Gestión de Contenido (CMS)</td><td>Edición de textos del sitio sin tocar código.</td><td>Administrador</td></tr>
+<tr><td>Notificaciones por correo</td><td>Envío automático al comité y confirmación al denunciante.</td><td>Sistema</td></tr>
+</table>
+
+<h2>Características destacadas</h2>
+<ul>
+<li>Disponible 24/7 desde computadora, tablet o teléfono (diseño responsivo).</li>
+<li>Modalidad <strong>anónima</strong> o <strong>identificada</strong>.</li>
+<li>Generación automática de <strong>folio de seguimiento</strong> y comprobante PDF.</li>
+<li>Panel de administración tipo CMS (similar a WordPress) para gestionar contenido.</li>
+<li>Cinco estados de seguimiento: Recibida, En revisión, En investigación, Resuelta, Desestimada.</li>
+<li>Funciones de <strong>accesibilidad</strong>: lector de voz, alto contraste y atajos de teclado.</li>
+<li>Notificaciones automáticas por correo electrónico.</li>
+<li>Almacenamiento seguro en la nube (Supabase) con cifrado de contraseñas y control de acceso.</li>
+</ul>
+
+<h1 class="titulo-seccion">Documentación entregada</h1>
+<p>Este entregable incluye los siguientes manuales, cada uno en formato PDF:</p>
+<table>
+<tr><th>#</th><th>Documento</th><th>Dirigido a</th><th>Contenido</th></tr>
+<tr>
+<td>1</td><td>Manual del Usuario (Denunciante)</td><td>Público general</td>
+<td>Cómo presentar una denuncia y consultar su estatus, paso a paso.</td>
+</tr>
+<tr>
+<td>2</td><td>Manual del Administrador</td><td>Comité de Ética</td>
+<td>Gestión de folios, cambio de estatus, notas, CMS y seguridad.</td>
+</tr>
+<tr>
+<td>3</td><td>Manual Técnico e Instalación</td><td>Equipo de TI</td>
+<td>Arquitectura, instalación, configuración, base de datos y despliegue.</td>
+</tr>
+</table>
+
+<h1 class="titulo-seccion">Cómo empezar</h1>
+<div class="paso">
+<span class="numero">1</span>
+<strong>Denunciantes:</strong> lean el <em>Manual del Usuario</em> para conocer cómo presentar y dar
+seguimiento a una denuncia.
+</div>
+<div class="paso">
+<span class="numero">2</span>
+<strong>Comité de Ética:</strong> lean el <em>Manual del Administrador</em>. Lo primero es acceder a
+<code>/admin/login</code> y <strong>cambiar la contraseña por defecto</strong>.
+</div>
+<div class="paso">
+<span class="numero">3</span>
+<strong>Equipo técnico:</strong> consulten el <em>Manual Técnico</em> para la instalación,
+configuración de Supabase y despliegue en Netlify.
+</div>
+
+<div class="importante">
+<strong>Nota de seguridad inicial:</strong> El sistema se entrega con un usuario administrador por
+defecto (<code>admin</code> / <code>admin123</code>). Es <strong>obligatorio</strong> cambiar esta
+contraseña antes de poner el sistema en producción.
+</div>
+
+<h1 class="titulo-seccion">Datos de contacto</h1>
+<table>
+<tr><th>Concepto</th><th>Detalle</th></tr>
+<tr><td>Correo del comité de ética</td><td>denunciasconsultoresarh@gmail.com</td></tr>
+<tr><td>Acceso al panel admin</td><td>[dominio-del-sitio]/admin/login</td></tr>
+<tr><td>Consulta de folios (público)</td><td>[dominio-del-sitio]/tracking</td></tr>
+</table>
+
+<div class="footer-doc">
+<p><strong>ARH Consultores — Canal Ético de Denuncias</strong></p>
+<p>Documento de Entrega · Versión 1.0 · 2026 · Documento confidencial</p>
+</div>
+
+</body>
+</html>
