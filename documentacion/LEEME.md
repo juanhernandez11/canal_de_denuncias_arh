@@ -2,14 +2,18 @@
 
 Esta carpeta contiene la documentación completa del sistema, lista para entregar al cliente.
 
-## Archivos PDF (entregables finales)
+## Entregables finales
 
-| Archivo | Dirigido a | Contenido |
-|---------|-----------|-----------|
-| `0-Documento-General-Entrega.pdf` | Cliente / Dirección | Descripción general del sistema, componentes, índice de manuales y cómo empezar. |
-| `1-Manual-Usuario-Denunciante.pdf` | Público / Denunciantes | Cómo presentar una denuncia y consultar su estatus, paso a paso. |
-| `2-Manual-Administrador.pdf` | Comité de Ética | Gestión de folios, cambio de estatus, notas, CMS y seguridad. |
-| `3-Manual-Tecnico-Instalacion.pdf` | Equipo de TI | Arquitectura, instalación, configuración, base de datos y despliegue. |
+Cada manual está disponible en **dos formatos**: PDF (para imprimir/entregar) y **Word (.docx)** (para editar).
+
+| Documento | PDF | Word | Dirigido a |
+|-----------|-----|------|-----------|
+| Documento General de Entrega | `0-Documento-General-Entrega.pdf` | `0-Documento-General-Entrega.docx` | Cliente / Dirección |
+| Manual del Usuario (Denunciante) | `1-Manual-Usuario-Denunciante.pdf` | `1-Manual-Usuario-Denunciante.docx` | Público / Denunciantes |
+| Manual del Administrador | `2-Manual-Administrador.pdf` | `2-Manual-Administrador.docx` | Comité de Ética |
+| Manual Técnico e Instalación | `3-Manual-Tecnico-Instalacion.pdf` | `3-Manual-Tecnico-Instalacion.docx` | Equipo de TI |
+
+Los archivos `.docx` se abren y editan en **Microsoft Word, LibreOffice Writer o Google Docs**.
 
 ## Archivos fuente (HTML)
 
@@ -35,8 +39,25 @@ chrome --headless --disable-gpu --no-pdf-header-footer \
   "1-Manual-Usuario-Denunciante.html"
 ```
 
+## Cómo regenerar los Word (.docx)
+
+Los documentos Word se generan por script (sin dependencias externas):
+
+```bash
+cd documentacion
+python3 _generar_docx.py
+```
+
+El contenido de cada manual está en `_contenido_docx.py` (fácil de editar) y los
+helpers de formato en `_generar_docx.py`.
+
+## Cómo convertir un PDF a Word manualmente (alternativa)
+
+- **Microsoft Word 2016+:** Archivo → Abrir → selecciona el PDF → acepta la conversión → guarda como `.docx`.
+- **En línea:** sube el PDF a smallpdf.com o ilovepdf.com (PDF a Word).
+
 ## Notas
 
-- Los manuales usan el logo en `../public/logo-arh.png`.
+- Los manuales PDF usan el logo en `../public/logo-arh.png`.
 - Los colores siguen la identidad de ARH Consultores: azul `#1a237e` y acento naranja/ámbar `#f57c00` / `#ffc107`.
 - Documentos confidenciales — versión 1.0 — 2026.
