@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Wizard from './components/Wizard';
 import Tracking from './components/Tracking';
+import TrackingSearch from './components/TrackingSearch';
 import { AuthProvider } from './admin/AuthContext';
 import RequireAuth from './admin/RequireAuth';
 import AdminLayout from './admin/AdminLayout';
@@ -16,6 +17,7 @@ export default function App() {
         <Toaster position="top-right" />
         <Routes>
           <Route path="/" element={<Wizard />} />
+          <Route path="/tracking" element={<TrackingSearch />} />
           <Route path="/tracking/:folio" element={<Tracking />} />
 
           <Route path="/admin/login" element={<LoginPage />} />

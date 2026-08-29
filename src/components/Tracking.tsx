@@ -164,10 +164,16 @@ export default function Tracking() {
             </>
           )}
 
-          <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+          <div className="mt-8 pt-6 border-t border-slate-100 text-center space-y-2">
+            <Link
+              to="/tracking"
+              className="block text-sm font-semibold text-[#1a237e] hover:text-[#283593] transition-colors"
+            >
+              🔎 Consultar otro folio
+            </Link>
             <Link
               to="/"
-              className="inline-block text-sm font-semibold text-[#1a237e] hover:text-[#283593] transition-colors"
+              className="inline-block text-sm text-slate-500 hover:text-[#1a237e] transition-colors"
             >
               ← Volver al inicio
             </Link>

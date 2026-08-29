@@ -13,6 +13,7 @@ const {
   updateContentBlock,
   getAdminByUsername,
 } = require('./_data');
+const { sendEstatusEmail } = require('./_mail');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-arh-change-me';
 const COOKIE_NAME = 'admin_token';
@@ -168,9 +169,27 @@ exports.handler = async (event) => {
           if (notas_admin !== undefined && typeof notas_admin !== 'string') {
             return json(400, { error: 'notas_admin inválido' });
           }
+          // Estado previo para detectar si el estatus realmente cambió
+          const previo = await getDenuncia(folio);
+          if (!previo) return json(404, { error: 'Folio no encontrado' });
+
           const updated = await updateDenuncia(folio, { estatus, notas_admin });
           if (!updated) return json(404, { error: 'Folio no encontrado' });
-          return json(200, updated);
+
+          // Notificar al denunciante si el estatus cambió y dejó correo
+          let notificado = false;
+          if (
+            estatus !== undefined &&
+            estatus !== previo.estatus &&
+            updated.denunciante_correo
+          ) {
+            notificado = await sendEstatusEmail(
+              updated.denunciante_correo,
+              folio,
+              estatus
+            );
+          }
+          return json(200, { ...updated, notificado });
         }
       }
 

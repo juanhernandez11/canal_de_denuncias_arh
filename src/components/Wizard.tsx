@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { LayoutGrid, User, Calendar, Eye, Paperclip, CheckSquare } from 'lucide-react';
 import Button from './shared/Button';
 import { Toaster, toast } from 'react-hot-toast';
@@ -771,6 +772,22 @@ export default function Wizard() {
           </div>
         </div>
         )}
+      </div>
+
+      {/* Pie con accesos: consultar folio y panel de administración */}
+      <div className="w-full max-w-4xl mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 px-2">
+        <Link
+          to="/tracking"
+          className="text-indigo-200 hover:text-white text-sm font-medium transition-colors"
+        >
+          🔎 Consultar el estatus de mi folio
+        </Link>
+        <Link
+          to="/admin/login"
+          className="text-indigo-300/70 hover:text-white text-xs transition-colors"
+        >
+          Acceso administradores
+        </Link>
       </div>
 
       <AccesibilidadPanel step={step} />

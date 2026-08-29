@@ -16,6 +16,7 @@ import {
   type AuthedRequest,
 } from './auth.ts';
 import { ESTATUS_LABELS, type EstatusFolio } from '../types/admin.ts';
+import { sendEstatusEmail } from './mail.ts';
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -135,6 +136,12 @@ export function registerAdminRoutes(app: Express): void {
           return;
         }
 
+        const previo = await getDenuncia(req.params.folio);
+        if (!previo) {
+          res.status(404).json({ error: 'Folio no encontrado' });
+          return;
+        }
+
         const updated = await updateDenuncia(req.params.folio, {
           estatus: estatus as EstatusFolio | undefined,
           notas_admin,
@@ -143,7 +150,21 @@ export function registerAdminRoutes(app: Express): void {
           res.status(404).json({ error: 'Folio no encontrado' });
           return;
         }
-        res.json(updated);
+
+        // Notificar al denunciante si el estatus cambió y dejó correo
+        let notificado = false;
+        if (
+          estatus !== undefined &&
+          estatus !== previo.estatus &&
+          updated.denunciante_correo
+        ) {
+          notificado = await sendEstatusEmail(
+            updated.denunciante_correo,
+            updated.folio,
+            estatus as EstatusFolio
+          );
+        }
+        res.json({ ...updated, notificado });
       } catch (err) {
         console.error('[folios:patch]', err);
         res.status(500).json({ error: 'Error al actualizar el folio' });
