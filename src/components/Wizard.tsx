@@ -386,11 +386,32 @@ export default function Wizard() {
       <Toaster position="top-right" />
       <div className="w-full max-w-4xl bg-white rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.3)] overflow-hidden">
         {/* Header con logo ARH Consultores */}
-        <div className="bg-gradient-to-r from-[#1a237e] to-[#283593] px-8 py-6 flex items-center gap-5">
-          <img src="/logo-arh.png" alt="ARH Consultores" className="h-12 object-contain shrink-0" />
-          <div className="border-l border-white/30 pl-5">
-            <h1 className="text-white font-bold text-lg tracking-tight">{siteContent['home.titulo'] || 'Canal Ético de Denuncias'}</h1>
-            <p className="text-indigo-200 text-sm mt-0.5">{siteContent['home.subtitulo'] || 'Enviar comunicación'}</p>
+        <div className="bg-gradient-to-r from-[#1a237e] to-[#283593] px-8 py-5 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-5 min-w-0">
+            <img src="/logo-arh.png" alt="ARH Consultores" className="h-12 object-contain shrink-0" />
+            <div className="border-l border-white/30 pl-5 min-w-0">
+              <h1 className="text-white font-bold text-lg tracking-tight truncate">{siteContent['home.titulo'] || 'Canal Ético de Denuncias'}</h1>
+              <p className="text-indigo-200 text-sm mt-0.5 truncate">{siteContent['home.subtitulo'] || 'Enviar comunicación'}</p>
+            </div>
+          </div>
+
+          {/* Accesos rápidos */}
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              to="/tracking"
+              className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 text-white text-sm font-semibold px-4 py-2 rounded-lg backdrop-blur-sm transition-all"
+            >
+              <Search className="w-4 h-4 text-amber-300" />
+              <span className="hidden sm:inline">Consultar folio</span>
+            </Link>
+            <Link
+              to="/admin/login"
+              title="Acceso administradores"
+              className="inline-flex items-center gap-1.5 text-indigo-200/70 hover:text-white text-sm px-3 py-2 rounded-lg hover:bg-white/10 transition-all"
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span className="hidden md:inline">Admin</span>
+            </Link>
           </div>
         </div>
 
@@ -772,25 +793,6 @@ export default function Wizard() {
           </div>
         </div>
         )}
-      </div>
-
-      {/* Pie con accesos: consultar folio y panel de administración */}
-      <div className="w-full max-w-4xl mt-8 flex flex-col items-center gap-4">
-        <Link
-          to="/tracking"
-          className="group inline-flex items-center gap-2.5 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 text-white text-sm font-semibold px-6 py-3 rounded-full backdrop-blur-md shadow-lg transition-all duration-200 hover:-translate-y-0.5"
-        >
-          <Search className="w-4 h-4 text-amber-300 group-hover:scale-110 transition-transform" />
-          Consultar el estatus de mi folio
-        </Link>
-
-        <Link
-          to="/admin/login"
-          className="inline-flex items-center gap-1.5 text-indigo-300/50 hover:text-indigo-200 text-xs font-medium transition-colors"
-        >
-          <ShieldCheck className="w-3.5 h-3.5" />
-          Acceso administradores
-        </Link>
       </div>
 
       <AccesibilidadPanel step={step} />
