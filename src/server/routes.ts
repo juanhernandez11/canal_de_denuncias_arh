@@ -8,6 +8,7 @@ import {
   updateDenuncia,
   getFolioStatus,
   verifyAdmin,
+  updateAdminPassword,
 } from './db.ts';
 import {
   signToken,
@@ -64,6 +65,30 @@ export function registerAdminRoutes(app: Express): void {
 
   app.get('/api/admin/me', requireAuth, (req: AuthedRequest, res: Response) => {
     res.json({ user: { username: req.admin?.username } });
+  });
+
+  app.put('/api/admin/password', requireAuth, async (req: AuthedRequest, res: Response) => {
+    try {
+      const { currentPassword, newPassword } = req.body ?? {};
+      if (typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
+        res.status(400).json({ error: 'Datos inválidos' });
+        return;
+      }
+      if (newPassword.length < 8) {
+        res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
+        return;
+      }
+      const admin = await verifyAdmin(req.admin!.username, currentPassword);
+      if (!admin) {
+        res.status(401).json({ error: 'Contraseña actual incorrecta' });
+        return;
+      }
+      await updateAdminPassword(req.admin!.username, newPassword);
+      res.json({ ok: true });
+    } catch (err) {
+      console.error('[password:change]', err);
+      res.status(500).json({ error: 'Error al cambiar la contraseña' });
+    }
   });
 
   // -------------------------------------------------------------------------

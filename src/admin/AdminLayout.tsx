@@ -64,6 +64,13 @@ export default function AdminLayout() {
           >
             <span aria-hidden="true">📝</span> Contenido
           </NavLink>
+          <NavLink
+            to="/admin/password"
+            className={navLinkClass}
+            onClick={() => setSidebarOpen(false)}
+          >
+            <span aria-hidden="true">🔑</span> Cambiar contraseña
+          </NavLink>
         </nav>
 
         <div className="border-t border-white/10 px-3 py-4">
@@ -72,13 +79,14 @@ export default function AdminLayout() {
               Conectado como <span className="font-semibold text-white">{user.username}</span>
             </p>
           )}
-          <NavLink
-            to="/"
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
             className="mb-1 flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white"
-            onClick={() => setSidebarOpen(false)}
           >
             <span aria-hidden="true">🌐</span> Ver sitio público
-          </NavLink>
+          </a>
           <button
             type="button"
             onClick={handleLogout}

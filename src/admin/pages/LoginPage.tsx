@@ -1,15 +1,19 @@
 import { FormEvent, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../AuthContext';
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  if (user) {
+    return <Navigate to="/admin/folios" replace />;
+  }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();

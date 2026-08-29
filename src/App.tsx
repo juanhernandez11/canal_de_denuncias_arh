@@ -9,6 +9,7 @@ import AdminLayout from './admin/AdminLayout';
 import LoginPage from './admin/pages/LoginPage';
 import FoliosPage from './admin/pages/FoliosPage';
 import ContenidoPage from './admin/pages/ContenidoPage';
+import ChangePasswordPage from './admin/pages/ChangePasswordPage';
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
             <Route index element={<Navigate to="/admin/folios" replace />} />
             <Route path="folios" element={<FoliosPage />} />
             <Route path="contenido" element={<ContenidoPage />} />
+            <Route path="password" element={<ChangePasswordPage />} />
           </Route>
         </Routes>
       </AuthProvider>

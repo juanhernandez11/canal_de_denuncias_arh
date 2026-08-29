@@ -329,3 +329,15 @@ export async function verifyAdmin(
   const ok = bcrypt.compareSync(password, admin.password_hash);
   return ok ? admin : null;
 }
+
+export async function updateAdminPassword(
+  username: string,
+  newPassword: string
+): Promise<void> {
+  const hash = bcrypt.hashSync(newPassword, 10);
+  const { error } = await getSupabase()
+    .from('admins')
+    .update({ password_hash: hash })
+    .eq('username', username);
+  if (error) throw new Error(error.message);
+}
