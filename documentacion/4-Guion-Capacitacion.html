@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guion de Capacitación — Canal de Denuncias ARH</title>
+<link rel="stylesheet" href="_estilos-pdf.css">
+</head>
+<body>
+
+<div class="print-hint no-print">
+  📄 Para guardar como PDF: presiona <strong>Ctrl+P</strong> (o Cmd+P en Mac) y elige "Guardar como PDF".
+  <button onclick="window.print()">Imprimir / Guardar PDF</button>
+</div>
+
+<!-- PORTADA -->
+<div class="portada">
+  <div class="logo-box">
+    <img src="../public/logo-arh.png" alt="ARH Consultores">
+  </div>
+  <h1>Guion de Capacitación</h1>
+  <p class="subtitulo">Canal Ético de Denuncias</p>
+  <p style="font-size:12pt;">Script para impartir la sesión de entrenamiento</p>
+  <p class="tipo-doc">Dirigido a quien facilita la capacitación</p>
+  <p class="meta">ARH Consultores © 2026 — Documento confidencial</p>
+</div>
+
+<!-- ÍNDICE -->
+<div class="indice">
+  <h2>Contenido</h2>
+  <ol>
+    <li>Objetivo y alcance de la capacitación</li>
+    <li>Preparación previa (checklist del facilitador)</li>
+    <li>Agenda y tiempos</li>
+    <li>Módulo 1 — Introducción (10 min)</li>
+    <li>Módulo 2 — Presentar una denuncia, demo en vivo (15 min)</li>
+    <li>Módulo 3 — Consultar el estatus de un folio (5 min)</li>
+    <li>Módulo 4 — Panel del administrador (20 min)</li>
+    <li>Módulo 5 — Gestión de contenido / CMS (10 min)</li>
+    <li>Ejercicios prácticos</li>
+    <li>Cierre y evaluación</li>
+    <li>Anexo: preguntas frecuentes de los asistentes</li>
+  </ol>
+</div>
+
+<h1 class="titulo-seccion">1. Objetivo y alcance de la capacitación</h1>
+<p>
+Al finalizar la sesión, los participantes serán capaces de: <strong>(1)</strong> presentar una
+denuncia por sí mismos, <strong>(2)</strong> consultar el estatus de un folio y, en el caso del
+Comité de Ética, <strong>(3)</strong> gestionar denuncias y editar el contenido del sitio desde el
+panel de administración.
+</p>
+<table>
+<tr><th>Audiencia</th><th>Módulos recomendados</th><th>Duración</th></tr>
+<tr><td>Empleados / público general</td><td>1, 2 y 3</td><td>~30 min</td></tr>
+<tr><td>Comité de Ética / administradores</td><td>1, 2, 3, 4 y 5</td><td>~70 min</td></tr>
+</table>
+<div class="nota">
+<strong>Sugerencia:</strong> Imparte dos sesiones separadas — una breve para todo el personal
+(cómo denunciar) y otra más completa solo para el Comité de Ética (administración).
+</div>
+
+<h1 class="titulo-seccion">2. Preparación previa (checklist del facilitador)</h1>
+<ul>
+<li>☐ Verificar que el sitio esté en línea y accesible.</li>
+<li>☐ Tener a la mano la URL del sitio y la del panel admin (<code>/admin/login</code>).</li>
+<li>☐ Confirmar que ya se cambió la contraseña por defecto del administrador.</li>
+<li>☐ Preparar un caso de ejemplo ficticio para la demostración (sin datos reales).</li>
+<li>☐ Tener proyector o pantalla compartida para mostrar el sitio en vivo.</li>
+<li>☐ Tener listos los manuales en PDF para compartir con los asistentes.</li>
+<li>☐ Probar el envío de una denuncia de prueba antes de la sesión.</li>
+</ul>
+<div class="importante">
+<strong>No uses datos reales</strong> durante la demostración. Crea un caso ficticio para no
+generar folios de prueba confusos en el sistema de producción; idealmente usa un ambiente de
+pruebas.
+</div>
+
+<h1 class="titulo-seccion">3. Agenda y tiempos</h1>
+<table>
+<tr><th>Módulo</th><th>Tema</th><th>Tiempo</th></tr>
+<tr><td>1</td><td>Introducción: qué es y para qué sirve</td><td>10 min</td></tr>
+<tr><td>2</td><td>Presentar una denuncia (demo en vivo)</td><td>15 min</td></tr>
+<tr><td>3</td><td>Consultar el estatus de un folio</td><td>5 min</td></tr>
+<tr><td>4</td><td>Panel del administrador (solo comité)</td><td>20 min</td></tr>
+<tr><td>5</td><td>Gestión de contenido / CMS (solo comité)</td><td>10 min</td></tr>
+<tr><td>—</td><td>Ejercicios prácticos y preguntas</td><td>10 min</td></tr>
+<tr><td>—</td><td>Cierre y evaluación</td><td>5 min</td></tr>
+</table>
+
+<h1 class="titulo-seccion">4. Módulo 1 — Introducción (10 min)</h1>
+<h3>Qué decir</h3>
+<p>
+"El Canal Ético de Denuncias es una herramienta segura y confidencial para reportar conductas
+irregulares. Está disponible las 24 horas, desde cualquier dispositivo. Puede usarse de forma
+anónima o identificada, y cada denuncia recibe un folio único para dar seguimiento."
+</p>
+<h3>Qué mostrar</h3>
+<ul>
+<li>Abrir la página principal del sitio en el proyector.</li>
+<li>Señalar el logo, el título y los botones "Consultar folio" y "Admin".</li>
+<li>Explicar los tipos de denuncia disponibles (mostrar el menú del paso 1).</li>
+</ul>
+<div class="tip">
+<strong>Mensaje clave a transmitir:</strong> "Denunciar es seguro. La información es confidencial y
+las denuncias de buena fe están protegidas contra represalias."
+</div>
+
+<h1 class="titulo-seccion">5. Módulo 2 — Presentar una denuncia, demo en vivo (15 min)</h1>
+<p>Realiza el recorrido completo por los 6 pasos, narrando cada uno:</p>
+<div class="paso">
+<span class="numero">1</span><strong>Inicio.</strong> "Selecciono el centro/sede y el tipo de
+denuncia. La empresa ya viene puesta."
+</div>
+<div class="paso">
+<span class="numero">2</span><strong>Denunciante.</strong> "Aquí decido si me identifico o soy
+anónimo. Voy a mostrar ambas opciones." (Muestra la diferencia.)
+</div>
+<div class="paso">
+<span class="numero">3</span><strong>Detalles.</strong> "Escribo la fecha y describo los hechos con
+el mayor detalle posible."
+</div>
+<div class="paso">
+<span class="numero">4</span><strong>Involucrados.</strong> "Si sé quiénes participaron, los agrego
+aquí. Es opcional."
+</div>
+<div class="paso">
+<span class="numero">5</span><strong>Evidencias.</strong> "Puedo adjuntar archivos como fotos o
+documentos. También es opcional."
+</div>
+<div class="paso">
+<span class="numero">6</span><strong>Confirmación.</strong> "Reviso el resumen, acepto el aviso de
+privacidad y envío. El sistema me da mi folio."
+</div>
+<h3>Puntos que enfatizar durante la demo</h3>
+<ul>
+<li>Mostrar el <strong>folio generado</strong> y el botón "Copiar folio".</li>
+<li>Mostrar la descarga del <strong>comprobante en PDF</strong>.</li>
+<li>Recalcar: <strong>"Guarden siempre el folio"</strong>, sobre todo en denuncias anónimas.</li>
+<li>Mencionar el <strong>panel de accesibilidad</strong> y los atajos de teclado (Alt+A, Alt+N, Alt+P).</li>
+</ul>
+
+<h1 class="titulo-seccion">6. Módulo 3 — Consultar el estatus de un folio (5 min)</h1>
+<h3>Qué mostrar</h3>
+<div class="paso">
+<span class="numero">1</span> Clic en "Consultar folio" desde la página principal.
+</div>
+<div class="paso">
+<span class="numero">2</span> Escribir el folio de la denuncia de prueba y consultar.
+</div>
+<div class="paso">
+<span class="numero">3</span> Mostrar el estatus y explicar qué significa cada uno.
+</div>
+<table>
+<tr><th>Estatus</th><th>Significado</th></tr>
+<tr><td><span class="badge badge-recibida">Recibida</span></td><td>Registrada correctamente.</td></tr>
+<tr><td><span class="badge badge-revision">En revisión</span></td><td>El comité la está revisando.</td></tr>
+<tr><td><span class="badge badge-investigacion">En investigación</span></td><td>Se está investigando a fondo.</td></tr>
+<tr><td><span class="badge badge-resuelta">Resuelta</span></td><td>Concluida con acciones tomadas.</td></tr>
+<tr><td><span class="badge badge-desestimada">Desestimada</span></td><td>Cerrada sin acción.</td></tr>
+</table>
+
+<h1 class="titulo-seccion">7. Módulo 4 — Panel del administrador (20 min)</h1>
+<div class="importante">
+<strong>Este módulo es solo para el Comité de Ética.</strong> No lo impartas en la sesión general
+de empleados.
+</div>
+<h3>Qué mostrar</h3>
+<div class="paso">
+<span class="numero">1</span><strong>Acceso.</strong> Ir a <code>/admin/login</code> e iniciar sesión.
+Recordar la importancia de no compartir credenciales.
+</div>
+<div class="paso">
+<span class="numero">2</span><strong>Lista de folios.</strong> Mostrar la tabla, la búsqueda y el
+filtro por estatus. Explicar la paginación.
+</div>
+<div class="paso">
+<span class="numero">3</span><strong>Detalle de una denuncia.</strong> Abrir un folio, mostrar todos
+los datos y la sección expandible de "datos completos".
+</div>
+<div class="paso">
+<span class="numero">4</span><strong>Cambiar estatus y notas.</strong> Cambiar el estatus, escribir una
+nota interna y guardar. Aclarar que las notas NO las ve el denunciante.
+</div>
+<div class="paso">
+<span class="numero">5</span><strong>Cambiar contraseña.</strong> Mostrar la sección de cambio de
+contraseña y recomendar hacerlo periódicamente.
+</div>
+<h3>Qué decir sobre el flujo de trabajo</h3>
+<p>
+"Cuando llega una denuncia nueva, aparece como 'Recibida'. El comité la pasa a 'En revisión'
+mientras la analiza, luego a 'En investigación' si procede, y finalmente a 'Resuelta' o
+'Desestimada'. En cada paso conviene dejar una nota interna con la fecha y lo que se hizo."
+</p>
+
+<h1 class="titulo-seccion">8. Módulo 5 — Gestión de contenido / CMS (10 min)</h1>
+<h3>Qué mostrar</h3>
+<div class="paso">
+<span class="numero">1</span> Ir a la sección "Contenido" del panel.
+</div>
+<div class="paso">
+<span class="numero">2</span> Editar un bloque de ejemplo (por ejemplo, el subtítulo o el pie de
+página) y guardarlo.
+</div>
+<div class="paso">
+<span class="numero">3</span> Abrir el sitio público en otra pestaña y mostrar el cambio reflejado.
+</div>
+<div class="tip">
+<strong>Mensaje clave:</strong> "Pueden actualizar los textos del sitio ustedes mismos, sin
+depender de un programador."
+</div>
+
+<h1 class="titulo-seccion">9. Ejercicios prácticos</h1>
+<p>Deja que los participantes practiquen (en ambiente de pruebas si es posible):</p>
+<h3>Para todos</h3>
+<ul>
+<li>Ejercicio 1: Presentar una denuncia anónima de prueba y guardar el folio.</li>
+<li>Ejercicio 2: Consultar el estatus del folio obtenido.</li>
+<li>Ejercicio 3: Descargar el comprobante en PDF.</li>
+</ul>
+<h3>Solo para el Comité de Ética</h3>
+<ul>
+<li>Ejercicio 4: Iniciar sesión en el panel y localizar la denuncia de prueba.</li>
+<li>Ejercicio 5: Cambiar el estatus a "En revisión" y agregar una nota interna.</li>
+<li>Ejercicio 6: Editar el subtítulo del sitio desde el CMS y verificar el cambio.</li>
+</ul>
+
+<h1 class="titulo-seccion">10. Cierre y evaluación</h1>
+<ul>
+<li>Recapitular los puntos clave: confidencialidad, uso del folio, flujo de estatus.</li>
+<li>Resolver dudas de los asistentes.</li>
+<li>Compartir los manuales en PDF y el correo de contacto del comité.</li>
+<li>Aplicar una breve evaluación o encuesta de satisfacción (opcional).</li>
+</ul>
+<h3>Preguntas de evaluación sugeridas</h3>
+<ul>
+<li>¿Sabes cómo presentar una denuncia y por qué es importante guardar el folio?</li>
+<li>¿Conoces la diferencia entre denuncia anónima e identificada?</li>
+<li>(Comité) ¿Sabes cambiar el estatus de una denuncia y agregar notas?</li>
+<li>(Comité) ¿Sabes editar el contenido del sitio desde el CMS?</li>
+</ul>
+
+<h1 class="titulo-seccion">11. Anexo: preguntas frecuentes de los asistentes</h1>
+<h3>"¿Alguien sabrá que fui yo quien denunció?"</h3>
+<p>Si eliges la modalidad anónima, no se registran tus datos. Si te identificas, tu información es
+confidencial y solo la ve el Comité de Ética.</p>
+<h3>"¿Qué pasa si pierdo mi folio?"</h3>
+<p>Si te identificaste, está en tu correo de confirmación. Si fue anónimo y no lo guardaste, no se
+puede recuperar por seguridad. Por eso insistimos en guardarlo.</p>
+<h3>"¿Puedo denunciar desde mi celular?"</h3>
+<p>Sí, el sitio funciona igual en computadora, tablet y teléfono.</p>
+<h3>"(Comité) ¿Puedo borrar una denuncia?"</h3>
+<p>El flujo está diseñado para cambiar estatus (incluida 'Desestimada'), no para borrar, de modo
+que quede trazabilidad. Consulta al responsable técnico para casos especiales.</p>
+
+<div class="footer-doc">
+<p><strong>ARH Consultores — Canal Ético de Denuncias</strong></p>
+<p>Guion de Capacitación · Versión 1.0 · 2026 · Documento confidencial</p>
+</div>
+
+</body>
+</html>

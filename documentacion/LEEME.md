@@ -12,6 +12,7 @@ Cada manual está disponible en **dos formatos**: PDF (para imprimir/entregar) y
 | Manual del Usuario (Denunciante) | `1-Manual-Usuario-Denunciante.pdf` | `1-Manual-Usuario-Denunciante.docx` | Público / Denunciantes |
 | Manual del Administrador | `2-Manual-Administrador.pdf` | `2-Manual-Administrador.docx` | Comité de Ética |
 | Manual Técnico e Instalación | `3-Manual-Tecnico-Instalacion.pdf` | `3-Manual-Tecnico-Instalacion.docx` | Equipo de TI |
+| Guion de Capacitación | `4-Guion-Capacitacion.pdf` | `4-Guion-Capacitacion.docx` | Facilitador de la sesión |
 
 Los archivos `.docx` se abren y editan en **Microsoft Word, LibreOffice Writer o Google Docs**.
 

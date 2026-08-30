@@ -391,6 +391,137 @@ doc3 = "".join([
 
 
 # ===========================================================================
+# 4. GUION DE CAPACITACIÓN
+# ===========================================================================
+
+doc4 = "".join([
+    p_title("Guion de Capacitación"),
+    p_subtitle("Canal Ético de Denuncias"),
+    p_text("Script para impartir la sesión de entrenamiento. Dirigido a quien facilita la capacitación. ARH Consultores © 2026 — Confidencial."),
+    page_break(),
+
+    p_h1("1. Objetivo y alcance de la capacitación"),
+    p_text("Al finalizar la sesión, los participantes serán capaces de: (1) presentar una denuncia por sí mismos, (2) consultar el estatus de un folio y, en el caso del Comité de Ética, (3) gestionar denuncias y editar el contenido del sitio desde el panel de administración."),
+    table([
+        ["Audiencia", "Módulos recomendados", "Duración"],
+        ["Empleados / público general", "1, 2 y 3", "~30 min"],
+        ["Comité de Ética / administradores", "1, 2, 3, 4 y 5", "~70 min"],
+    ], widths=[3400, 3400, 2000]),
+    p_box("Sugerencia: Imparte dos sesiones separadas — una breve para todo el personal (cómo denunciar) y otra más completa solo para el Comité de Ética (administración).", "nota"),
+
+    p_h1("2. Preparación previa (checklist del facilitador)"),
+    p_bullet("Verificar que el sitio esté en línea y accesible."),
+    p_bullet("Tener a la mano la URL del sitio y la del panel admin (/admin/login)."),
+    p_bullet("Confirmar que ya se cambió la contraseña por defecto del administrador."),
+    p_bullet("Preparar un caso de ejemplo ficticio para la demostración (sin datos reales)."),
+    p_bullet("Tener proyector o pantalla compartida para mostrar el sitio en vivo."),
+    p_bullet("Tener listos los manuales en PDF para compartir con los asistentes."),
+    p_bullet("Probar el envío de una denuncia de prueba antes de la sesión."),
+    p_box("No uses datos reales durante la demostración. Crea un caso ficticio; idealmente usa un ambiente de pruebas.", "importante"),
+
+    p_h1("3. Agenda y tiempos"),
+    table([
+        ["Módulo", "Tema", "Tiempo"],
+        ["1", "Introducción: qué es y para qué sirve", "10 min"],
+        ["2", "Presentar una denuncia (demo en vivo)", "15 min"],
+        ["3", "Consultar el estatus de un folio", "5 min"],
+        ["4", "Panel del administrador (solo comité)", "20 min"],
+        ["5", "Gestión de contenido / CMS (solo comité)", "10 min"],
+        ["—", "Ejercicios prácticos y preguntas", "10 min"],
+        ["—", "Cierre y evaluación", "5 min"],
+    ], widths=[1400, 5400, 2000]),
+
+    p_h1("4. Módulo 1 — Introducción (10 min)"),
+    p_h3("Qué decir"),
+    p_text("\"El Canal Ético de Denuncias es una herramienta segura y confidencial para reportar conductas irregulares. Está disponible las 24 horas, desde cualquier dispositivo. Puede usarse de forma anónima o identificada, y cada denuncia recibe un folio único para dar seguimiento.\""),
+    p_h3("Qué mostrar"),
+    p_bullet("Abrir la página principal del sitio en el proyector."),
+    p_bullet("Señalar el logo, el título y los botones 'Consultar folio' y 'Admin'."),
+    p_bullet("Explicar los tipos de denuncia disponibles (mostrar el menú del paso 1)."),
+    p_box("Mensaje clave: 'Denunciar es seguro. La información es confidencial y las denuncias de buena fe están protegidas contra represalias.'", "tip"),
+
+    p_h1("5. Módulo 2 — Presentar una denuncia, demo en vivo (15 min)"),
+    p_text("Realiza el recorrido completo por los 6 pasos, narrando cada uno:"),
+    p_box("Paso 1 — Inicio: 'Selecciono el centro/sede y el tipo de denuncia. La empresa ya viene puesta.'", "paso"),
+    p_box("Paso 2 — Denunciante: 'Aquí decido si me identifico o soy anónimo. Voy a mostrar ambas opciones.'", "paso"),
+    p_box("Paso 3 — Detalles: 'Escribo la fecha y describo los hechos con el mayor detalle posible.'", "paso"),
+    p_box("Paso 4 — Involucrados: 'Si sé quiénes participaron, los agrego aquí. Es opcional.'", "paso"),
+    p_box("Paso 5 — Evidencias: 'Puedo adjuntar archivos como fotos o documentos. También es opcional.'", "paso"),
+    p_box("Paso 6 — Confirmación: 'Reviso el resumen, acepto el aviso de privacidad y envío. El sistema me da mi folio.'", "paso"),
+    p_h3("Puntos que enfatizar durante la demo"),
+    p_bullet("Mostrar el folio generado y el botón 'Copiar folio'."),
+    p_bullet("Mostrar la descarga del comprobante en PDF."),
+    p_bullet("Recalcar: 'Guarden siempre el folio', sobre todo en denuncias anónimas."),
+    p_bullet("Mencionar el panel de accesibilidad y los atajos de teclado (Alt+A, Alt+N, Alt+P)."),
+
+    p_h1("6. Módulo 3 — Consultar el estatus de un folio (5 min)"),
+    p_box("1. Clic en 'Consultar folio' desde la página principal.", "paso"),
+    p_box("2. Escribir el folio de la denuncia de prueba y consultar.", "paso"),
+    p_box("3. Mostrar el estatus y explicar qué significa cada uno.", "paso"),
+    table([
+        ["Estatus", "Significado"],
+        ["Recibida", "Registrada correctamente."],
+        ["En revisión", "El comité la está revisando."],
+        ["En investigación", "Se está investigando a fondo."],
+        ["Resuelta", "Concluida con acciones tomadas."],
+        ["Desestimada", "Cerrada sin acción."],
+    ], widths=[2600, 6200]),
+
+    p_h1("7. Módulo 4 — Panel del administrador (20 min)"),
+    p_box("Este módulo es solo para el Comité de Ética. No lo impartas en la sesión general de empleados.", "importante"),
+    p_h3("Qué mostrar"),
+    p_box("1. Acceso: ir a /admin/login e iniciar sesión. Recordar no compartir credenciales.", "paso"),
+    p_box("2. Lista de folios: mostrar la tabla, la búsqueda y el filtro por estatus. Explicar la paginación.", "paso"),
+    p_box("3. Detalle de una denuncia: abrir un folio, mostrar todos los datos y la sección de 'datos completos'.", "paso"),
+    p_box("4. Cambiar estatus y notas: cambiar el estatus, escribir una nota interna y guardar. Aclarar que las notas NO las ve el denunciante.", "paso"),
+    p_box("5. Cambiar contraseña: mostrar la sección y recomendar hacerlo periódicamente.", "paso"),
+    p_h3("Qué decir sobre el flujo de trabajo"),
+    p_text("\"Cuando llega una denuncia nueva, aparece como 'Recibida'. El comité la pasa a 'En revisión' mientras la analiza, luego a 'En investigación' si procede, y finalmente a 'Resuelta' o 'Desestimada'. En cada paso conviene dejar una nota interna con la fecha y lo que se hizo.\""),
+
+    p_h1("8. Módulo 5 — Gestión de contenido / CMS (10 min)"),
+    p_h3("Qué mostrar"),
+    p_box("1. Ir a la sección 'Contenido' del panel.", "paso"),
+    p_box("2. Editar un bloque de ejemplo (subtítulo o pie de página) y guardarlo.", "paso"),
+    p_box("3. Abrir el sitio público en otra pestaña y mostrar el cambio reflejado.", "paso"),
+    p_box("Mensaje clave: 'Pueden actualizar los textos del sitio ustedes mismos, sin depender de un programador.'", "tip"),
+
+    p_h1("9. Ejercicios prácticos"),
+    p_text("Deja que los participantes practiquen (en ambiente de pruebas si es posible):"),
+    p_h3("Para todos"),
+    p_bullet("Ejercicio 1: Presentar una denuncia anónima de prueba y guardar el folio."),
+    p_bullet("Ejercicio 2: Consultar el estatus del folio obtenido."),
+    p_bullet("Ejercicio 3: Descargar el comprobante en PDF."),
+    p_h3("Solo para el Comité de Ética"),
+    p_bullet("Ejercicio 4: Iniciar sesión en el panel y localizar la denuncia de prueba."),
+    p_bullet("Ejercicio 5: Cambiar el estatus a 'En revisión' y agregar una nota interna."),
+    p_bullet("Ejercicio 6: Editar el subtítulo del sitio desde el CMS y verificar el cambio."),
+
+    p_h1("10. Cierre y evaluación"),
+    p_bullet("Recapitular los puntos clave: confidencialidad, uso del folio, flujo de estatus."),
+    p_bullet("Resolver dudas de los asistentes."),
+    p_bullet("Compartir los manuales en PDF y el correo de contacto del comité."),
+    p_bullet("Aplicar una breve evaluación o encuesta de satisfacción (opcional)."),
+    p_h3("Preguntas de evaluación sugeridas"),
+    p_bullet("¿Sabes cómo presentar una denuncia y por qué es importante guardar el folio?"),
+    p_bullet("¿Conoces la diferencia entre denuncia anónima e identificada?"),
+    p_bullet("(Comité) ¿Sabes cambiar el estatus de una denuncia y agregar notas?"),
+    p_bullet("(Comité) ¿Sabes editar el contenido del sitio desde el CMS?"),
+
+    p_h1("11. Anexo: preguntas frecuentes de los asistentes"),
+    p_h3("¿Alguien sabrá que fui yo quien denunció?"),
+    p_text("Si eliges la modalidad anónima, no se registran tus datos. Si te identificas, tu información es confidencial y solo la ve el Comité de Ética."),
+    p_h3("¿Qué pasa si pierdo mi folio?"),
+    p_text("Si te identificaste, está en tu correo de confirmación. Si fue anónimo y no lo guardaste, no se puede recuperar por seguridad. Por eso insistimos en guardarlo."),
+    p_h3("¿Puedo denunciar desde mi celular?"),
+    p_text("Sí, el sitio funciona igual en computadora, tablet y teléfono."),
+    p_h3("(Comité) ¿Puedo borrar una denuncia?"),
+    p_text("El flujo está diseñado para cambiar estatus (incluida 'Desestimada'), no para borrar, de modo que quede trazabilidad. Consulta al responsable técnico para casos especiales."),
+
+    footer_note("ARH Consultores — Canal Ético de Denuncias · Guion de Capacitación · Versión 1.0 · 2026 · Confidencial"),
+])
+
+
+# ===========================================================================
 # Registro de documentos a generar
 # ===========================================================================
 
@@ -399,4 +530,5 @@ DOCUMENTOS = [
     ("1-Manual-Usuario-Denunciante.docx", "Manual del Usuario - Canal de Denuncias ARH", doc1),
     ("2-Manual-Administrador.docx", "Manual del Administrador - Canal de Denuncias ARH", doc2),
     ("3-Manual-Tecnico-Instalacion.docx", "Manual Tecnico - Canal de Denuncias ARH", doc3),
+    ("4-Guion-Capacitacion.docx", "Guion de Capacitacion - Canal de Denuncias ARH", doc4),
 ]
