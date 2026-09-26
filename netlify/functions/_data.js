@@ -215,6 +215,35 @@ function extractDenunciaFields(body) {
   };
 }
 
+// --- Archivos ---
+async function insertArchivoMeta(data) {
+  const { rows } = await query(
+    `INSERT INTO archivos_denuncia
+       (denuncia_folio, nombre_original, nombre_storage, mime_type, size_bytes, r2_key)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING *`,
+    [data.denuncia_folio, data.nombre_original, data.nombre_storage,
+     data.mime_type, data.size_bytes, data.r2_key]
+  );
+  return rows[0];
+}
+
+async function getArchivosByFolio(folio) {
+  const { rows } = await query(
+    'SELECT * FROM archivos_denuncia WHERE denuncia_folio = $1 ORDER BY created_at ASC',
+    [folio]
+  );
+  return rows;
+}
+
+async function getArchivo(id) {
+  const { rows } = await query(
+    'SELECT * FROM archivos_denuncia WHERE id = $1',
+    [id]
+  );
+  return rows[0] || undefined;
+}
+
 module.exports = {
   ESTATUS_LABELS,
   VALID_ESTATUS,
@@ -229,4 +258,7 @@ module.exports = {
   getAdminByUsername,
   updateAdminPassword,
   extractDenunciaFields,
+  insertArchivoMeta,
+  getArchivosByFolio,
+  getArchivo,
 };

@@ -41,3 +41,21 @@ CREATE TABLE IF NOT EXISTS content_blocks (
   value      TEXT NOT NULL DEFAULT '',
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+
+-- ============================================================
+-- Archivos adjuntos — Cloudflare R2
+-- ============================================================
+CREATE TABLE IF NOT EXISTS archivos_denuncia (
+  id               BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  denuncia_folio   TEXT NOT NULL REFERENCES denuncias(folio) ON DELETE CASCADE,
+  nombre_original  TEXT NOT NULL,
+  nombre_storage   TEXT NOT NULL,
+  mime_type        TEXT NOT NULL,
+  size_bytes       INTEGER NOT NULL,
+  r2_key           TEXT NOT NULL UNIQUE,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_archivos_denuncia_folio
+  ON archivos_denuncia (denuncia_folio);

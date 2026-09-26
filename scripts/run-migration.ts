@@ -48,7 +48,7 @@ async function runMigration() {
     console.log('✅ Seed completado');
 
     // Verificación
-    const tables = ['admins', 'denuncias', 'content_blocks'];
+    const tables = ['admins', 'denuncias', 'content_blocks', 'archivos_denuncia'];
     console.log('\n📊 Verificación:');
     for (const t of tables) {
       const { rows } = await pool.query(`SELECT COUNT(*) AS n FROM ${t}`);

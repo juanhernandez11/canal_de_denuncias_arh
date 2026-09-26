@@ -13,6 +13,7 @@ const {
   updateContentBlock,
   getAdminByUsername,
   updateAdminPassword,
+  getArchivosByFolio,   // NUEVO
 } = require('./_data');
 const { sendEstatusEmail } = require('./_mail');
 
@@ -130,9 +131,26 @@ exports.handler = async (event) => {
       return json(200, { user });
     }
 
+    // Archivos por folio — requiere auth admin
+    if (path === '/api/files' && method === 'GET') {
+      if (!user) return json(401, { error: 'No autenticado' });
+      const folio = qs.folio;
+      if (!folio) return json(400, { error: 'folio requerido' });
+      const archivos = await getArchivosByFolio(decodeURIComponent(folio));
+      return json(200, archivos);
+    }
+
     // Todas las demás rutas /api/admin/* requieren auth
     if (path.startsWith('/api/admin/')) {
       if (!user) return json(401, { error: 'No autenticado' });
+
+      // Archivos de un folio (protegido)
+      if (path === '/api/admin/files' && method === 'GET') {
+        const folio = qs.folio;
+        if (!folio) return json(400, { error: 'folio requerido' });
+        const archivos = await getArchivosByFolio(decodeURIComponent(folio));
+        return json(200, archivos);
+      }
 
       // Cambio de contraseña
       if (path === '/api/admin/password' && method === 'PUT') {

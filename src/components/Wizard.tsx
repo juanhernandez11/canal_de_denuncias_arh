@@ -661,10 +661,16 @@ export default function Wizard() {
                   </div>
                   <p className="text-slate-500 text-sm mb-4">Arrastre sus archivos aquí o haga clic para seleccionar</p>
                   <input type="file" ref={fileInputRef} onChange={(e) => {
-                    if (e.target.files && e.target.files.length > 0)
-                      setArchivosSubidos([...archivosSubidos, e.target.files[0]]);
+                    if (e.target.files && e.target.files.length > 0) {
+                      const file = e.target.files[0];
+                      const ALLOWED = ['application/pdf','image/jpeg','image/jpg','image/png','image/gif','image/webp','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','text/plain'];
+                      if (!ALLOWED.includes(file.type)) { toast.error('Tipo de archivo no permitido'); return; }
+                      if (file.size > 10 * 1024 * 1024) { toast.error('El archivo supera 10MB'); return; }
+                      setArchivosSubidos([...archivosSubidos, file]);
+                    }
                   }} className="hidden" />
-                  <button onClick={() => fileInputRef.current?.click()} className="bg-[#1a237e] text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#283593] transition-colors shadow-sm">Seleccionar archivo</button>
+                  <p className="text-xs text-slate-400 mt-1">Formatos: PDF, JPG, PNG, DOC, DOCX, XLS, XLSX, TXT · Máx 10MB por archivo</p>
+                  <button onClick={() => fileInputRef.current?.click()} className="bg-[#1a237e] text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#283593] transition-colors shadow-sm mt-3">Seleccionar archivo</button>
                 </div>
               </div>
               {archivosSubidos.length > 0 && (
@@ -770,35 +776,64 @@ export default function Wizard() {
             }
             if (step === 6) {
               try {
-                toast.loading("Enviando formulario...");
-                const attachments = await Promise.all(
-                  archivosSubidos.map(async (file) => ({ name: file.name, data: await fileToBase64(file) }))
-                );
+                toast.loading('Enviando denuncia...');
+
+                // PASO 1: Enviar la denuncia (genera el folio en el backend)
                 const response = await fetch('/api/send-email', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
                     to: siteContent['contacto.email'] || 'denunciasconsultoresarh@gmail.com',
                     subject: `Nueva denuncia recibida: ${formData.tipo}`,
-                    text: `Se ha recibido una nueva denuncia.\n\nEmpresa: ${formData.empresa}\nCentro: ${formData.centro}\nTipo: ${formData.tipo}\nDescripción: ${formData.notificacion.descripcion}`,
+                    text: `Se ha recibido una nueva denuncia.\n\nEmpresa: ${formData.empresa}\nCentro: ${formData.centro}\nTipo: ${formData.tipo}\nDescripción: ${formData.notificacion.descripcion}\n\nArchivos adjuntos: ${archivosSubidos.length}`,
                     html: buildEmailHtml(formData),
-                    attachments,
-                    // Objeto completo del formulario para que el backend lo persista en la tabla `denuncias`.
+                    attachments: [], // los archivos van a R2, no al email
                     denuncia: formData,
-                    ...(formData.modo === 'identificado' && formData.denunciante.correo ? { denuncianteEmail: formData.denunciante.correo } : {})
+                    ...(formData.modo === 'identificado' && formData.denunciante.correo
+                      ? { denuncianteEmail: formData.denunciante.correo }
+                      : {})
                   })
                 });
-                if (!response.ok) throw new Error('Error al enviar el correo.');
+                if (!response.ok) throw new Error('Error al enviar la denuncia.');
                 const resData = await response.json();
+                const folio = resData.folio || '';
+
+                // PASO 2: Subir archivos a R2 (si hay)
+                if (archivosSubidos.length > 0 && folio) {
+                  toast.loading(`Subiendo ${archivosSubidos.length} archivo(s)...`);
+                  let subidosOk = 0;
+                  for (const file of archivosSubidos) {
+                    try {
+                      const base64 = await fileToBase64(file);
+                      const uploadRes = await fetch('/api/upload-file', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          folio,
+                          nombre: file.name,
+                          mime_type: file.type,
+                          data: base64,
+                        })
+                      });
+                      if (uploadRes.ok) subidosOk++;
+                      else console.warn('[upload] Fallo subiendo:', file.name);
+                    } catch (uploadErr) {
+                      console.warn('[upload] Error subiendo archivo:', uploadErr);
+                    }
+                  }
+                  if (subidosOk > 0) {
+                    console.log(`[upload] ${subidosOk}/${archivosSubidos.length} archivos subidos a R2`);
+                  }
+                }
+
                 toast.dismiss();
-                const okMsg = 'Formulario enviado con éxito. Gracias por su denuncia.';
-                toast.success(okMsg); narrar(okMsg);
-                setFolioGenerado(resData.folio || '');
+                toast.success('Denuncia enviada con éxito.');
+                setFolioGenerado(folio);
                 setEnviado(true);
               } catch (error) {
                 toast.dismiss();
                 const errMsg = error instanceof Error ? error.message : 'Hubo un error al enviar el formulario.';
-                toast.error(errMsg); narrar(errMsg);
+                toast.error(errMsg);
               }
               return;
             }

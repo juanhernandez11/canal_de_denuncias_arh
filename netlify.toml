@@ -32,6 +32,27 @@
   status = 200
   force = true
 
+# Upload de archivos a R2
+[[redirects]]
+  from = "/api/upload-file"
+  to = "/.netlify/functions/upload-file"
+  status = 200
+  force = true
+
+# Descarga de archivos desde R2 (signed URL)
+[[redirects]]
+  from = "/api/get-file"
+  to = "/.netlify/functions/get-file"
+  status = 200
+  force = true
+
+# Lista de archivos de un folio (via función admin)
+[[redirects]]
+  from = "/api/files"
+  to = "/.netlify/functions/admin/api/files"
+  status = 200
+  force = true
+
 # SPA fallback (debe ir al final)
 [[redirects]]
   from = "/*"
