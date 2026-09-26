@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "migrate:db": "tsx scripts/run-migration.ts"
+    "migrate:db": "tsx scripts/run-migration.ts",
+    "migrate:data": "tsx scripts/migrate-data.ts"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",
