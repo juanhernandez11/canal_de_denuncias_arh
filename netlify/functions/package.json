@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "nodemailer": "^8.0.3",
-    "@supabase/supabase-js": "^2.47.10",
+    "pg": "^8.13.3",
     "jsonwebtoken": "^9.0.2",
     "bcryptjs": "^2.4.3"
   }

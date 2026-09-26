@@ -1,12 +1,14 @@
 const nodemailer = require('nodemailer');
 const { insertDenuncia, extractDenunciaFields } = require('./_data');
 
+// MIGRADO: folio generado con crypto.randomBytes (criptográficamente seguro)
 function generarFolio() {
-  const year = new Date().getFullYear();
+  const year  = new Date().getFullYear();
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let random = '';
+  const bytes = require('crypto').randomBytes(5);
+  let random  = '';
   for (let i = 0; i < 5; i++) {
-    random += chars.charAt(Math.floor(Math.random() * chars.length));
+    random += chars[bytes[i] % chars.length];
   }
   return `ARH-${year}-${random}`;
 }
@@ -115,12 +117,12 @@ exports.handler = async (event) => {
       });
     }
 
-    // Persistir la denuncia en Supabase (no rompe el flujo si falla)
+    // Persistir la denuncia en Neon (no rompe el flujo si falla — el folio ya fue enviado)
     try {
       const body = JSON.parse(event.body);
       await insertDenuncia({ folio, ...extractDenunciaFields(body) });
     } catch (dbError) {
-      console.error('Error persistiendo denuncia (folio enviado):', dbError);
+      console.error('Error persistiendo denuncia en Neon (folio enviado):', dbError);
     }
 
     return {
