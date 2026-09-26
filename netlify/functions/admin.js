@@ -12,6 +12,7 @@ const {
   getContentMap,
   updateContentBlock,
   getAdminByUsername,
+  updateAdminPassword,
 } = require('./_data');
 const { sendEstatusEmail } = require('./_mail');
 
@@ -132,6 +133,23 @@ exports.handler = async (event) => {
     // Todas las demás rutas /api/admin/* requieren auth
     if (path.startsWith('/api/admin/')) {
       if (!user) return json(401, { error: 'No autenticado' });
+
+      // Cambio de contraseña
+      if (path === '/api/admin/password' && method === 'PUT') {
+        const { currentPassword, newPassword } = JSON.parse(event.body || '{}');
+        if (typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
+          return json(400, { error: 'Datos inválidos' });
+        }
+        if (newPassword.length < 8) {
+          return json(400, { error: 'La contraseña debe tener al menos 8 caracteres' });
+        }
+        const admin = await getAdminByUsername(user.username);
+        if (!admin || !bcrypt.compareSync(currentPassword, admin.password_hash)) {
+          return json(401, { error: 'Contraseña actual incorrecta' });
+        }
+        await updateAdminPassword(user.username, newPassword);
+        return json(200, { ok: true });
+      }
 
       // Folios: lista
       if (path === '/api/admin/folios' && method === 'GET') {

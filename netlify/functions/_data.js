@@ -181,6 +181,15 @@ async function getAdminByUsername(username) {
   return rows[0] || undefined;
 }
 
+async function updateAdminPassword(username, newPassword) {
+  const bcrypt = require('bcryptjs');
+  const hash = bcrypt.hashSync(newPassword, 10);
+  await query(
+    'UPDATE admins SET password_hash = $1 WHERE username = $2',
+    [hash, username]
+  );
+}
+
 // Extrae campos de denuncia del formData del Wizard
 function extractDenunciaFields(body) {
   const denuncia    = (body && body.denuncia) || {};
@@ -218,5 +227,6 @@ module.exports = {
   getContentMap,
   updateContentBlock,
   getAdminByUsername,
+  updateAdminPassword,
   extractDenunciaFields,
 };
