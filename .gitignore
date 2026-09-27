@@ -9,3 +9,6 @@ coverage/
 data/
 *.db
 *.sqlite
+
+# Credenciales OAuth de Google Cloud (NUNCA subir a Git)
+client_secret*.json

@@ -1,23 +1,29 @@
 // netlify/functions/get-file.js
-// Genera una URL firmada temporal para descargar un archivo de R2.
+// Proxy seguro para descargar archivos desde Google Drive.
 // REQUIERE autenticación admin (JWT cookie).
+//
+// IMPORTANTE:
+// - Nunca se devuelve una URL directa de Drive al cliente (evita exposición de tokens).
+// - El backend descarga el archivo y lo retransmite al admin como base64.
+// - Valida que el archivo exista en Neon antes de consultar Drive.
+// - No se puede acceder a un archivo solo con el fileId — se requiere el ID de Neon.
 'use strict';
 
-const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
-const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+const { downloadFileAsBuffer, getFileMetadata } = require('./lib/googleDrive');
 const { getArchivo } = require('./_data');
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET  = process.env.JWT_SECRET || 'dev-secret-arh-change-me';
 const COOKIE_NAME = 'admin_token';
-const URL_TTL_SECONDS = 300; // 5 minutos
 
 function parseCookies(header) {
   const out = {};
   if (!header) return out;
   header.split(';').forEach((part) => {
     const idx = part.indexOf('=');
-    if (idx > -1) out[part.slice(0, idx).trim()] = decodeURIComponent(part.slice(idx + 1).trim());
+    if (idx > -1) {
+      out[part.slice(0, idx).trim()] = decodeURIComponent(part.slice(idx + 1).trim());
+    }
   });
   return out;
 }
@@ -32,66 +38,72 @@ function getAuth(event) {
   } catch { return null; }
 }
 
-function getR2Client() {
-  const accountId = process.env.R2_ACCOUNT_ID;
-  const accessKey = process.env.R2_ACCESS_KEY_ID;
-  const secretKey = process.env.R2_SECRET_ACCESS_KEY;
-  if (!accountId || !accessKey || !secretKey) throw new Error('Faltan variables R2');
-  return new S3Client({
-    region: 'auto',
-    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-    credentials: { accessKeyId: accessKey, secretAccessKey: secretKey },
-  });
-}
-
 exports.handler = async (event) => {
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
 
-  // Verificar auth admin
+  // Verificar autenticación admin
   const user = getAuth(event);
   if (!user) {
-    return { statusCode: 401, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'No autenticado' }) };
+    return {
+      statusCode: 401,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: 'No autenticado' }),
+    };
   }
 
   try {
     const archivoId = event.queryStringParameters?.id;
+
     if (!archivoId || isNaN(Number(archivoId))) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'ID de archivo requerido' }) };
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'ID de archivo requerido' }),
+      };
     }
 
-    // Obtener metadata desde Neon
+    // 1. Obtener metadata desde Neon (contiene el google_drive_file_id)
     const archivo = await getArchivo(Number(archivoId));
     if (!archivo) {
-      return { statusCode: 404, body: JSON.stringify({ error: 'Archivo no encontrado' }) };
+      return {
+        statusCode: 404,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Archivo no encontrado' }),
+      };
     }
 
-    // Generar signed URL (expira en 5 minutos)
-    const client = getR2Client();
-    const bucket = process.env.R2_BUCKET_NAME;
-    if (!bucket) throw new Error('Falta R2_BUCKET_NAME');
+    // 2. Verificar que el archivo tiene Drive file ID
+    if (!archivo.google_drive_file_id) {
+      return {
+        statusCode: 404,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Este archivo no tiene Google Drive file ID (puede ser un archivo R2 heredado)' }),
+      };
+    }
 
-    const command = new GetObjectCommand({
-      Bucket: bucket,
-      Key: archivo.r2_key,
-      ResponseContentDisposition: `attachment; filename="${archivo.nombre_original}"`,
-    });
+    // 3. Descargar el archivo desde Drive como Buffer
+    // El fileId viene de Neon — el cliente nunca puede inyectar un fileId arbitrario
+    const buffer = await downloadFileAsBuffer(archivo.google_drive_file_id);
 
-    const url = await getSignedUrl(client, command, { expiresIn: URL_TTL_SECONDS });
+    const contentDisposition = `attachment; filename="${encodeURIComponent(archivo.nombre_original)}"`;
 
-    console.log(`[get-file] Signed URL generada para archivo ${archivoId} por ${user.username}`);
+    console.log(`[get-file] Descarga de archivo ${archivoId} (Drive: ${archivo.google_drive_file_id}) por ${user.username}`);
 
+    // 4. Retransmitir el archivo al admin
+    // Netlify Functions retorna body como string, usamos base64 isBase64Encoded
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        url,
-        nombre_original: archivo.nombre_original,
-        mime_type: archivo.mime_type,
-        size_bytes: archivo.size_bytes,
-        expires_in: URL_TTL_SECONDS,
-      }),
+      headers: {
+        'Content-Type': archivo.mime_type,
+        'Content-Disposition': contentDisposition,
+        'Content-Length': String(buffer.length),
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'X-Content-Type-Options': 'nosniff',
+      },
+      body: buffer.toString('base64'),
+      isBase64Encoded: true,
     };
 
   } catch (err) {
@@ -99,7 +111,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Error al generar URL de descarga' }),
+      body: JSON.stringify({ error: 'Error al descargar el archivo' }),
     };
   }
 };

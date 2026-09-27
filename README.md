@@ -1,66 +1,102 @@
 # Canal de Denuncias ARH
 
-Aplicación web para el envío y seguimiento de denuncias, con un panel de
-administración (CMS tipo WordPress + gestión de folios) respaldado por Supabase.
+Aplicación web para el envío y seguimiento de denuncias, con panel de
+administración respaldado por **Neon PostgreSQL** y **Google Drive**.
+
+## Stack
+
+- **Frontend**: Vite + React 19 + TypeScript + Tailwind CSS
+- **Backend**: Netlify Functions (Node.js)
+- **Base de datos**: Neon PostgreSQL
+- **Almacenamiento**: Google Drive (archivos privados)
+- **Auth admin**: JWT httpOnly cookie
+- **Correo**: Nodemailer + Gmail SMTP
 
 ## Requisitos
 
-- Node.js
-- Un proyecto de [Supabase](https://supabase.com) (plan gratuito es suficiente)
+- Node.js 18+
+- Cuenta en [Neon](https://neon.tech)
+- Proyecto en [Google Cloud](https://console.cloud.google.com) con Drive API habilitada
+- Cuenta de Gmail para notificaciones
 
 ## Configuración
 
-1. Instala dependencias:
-   ```
-   npm install
-   ```
+### 1. Instalar dependencias
 
-2. Crea las tablas en Supabase:
-   - En el dashboard de Supabase, abre **SQL Editor**.
-   - Pega el contenido de [`supabase/schema.sql`](supabase/schema.sql) y ejecuta **Run**.
-   - Esto crea las tablas `admins`, `denuncias` y `content_blocks`, siembra el
-     contenido editable por defecto y habilita RLS.
+```
+npm install
+cd netlify/functions && npm install && cd ../..
+```
 
-3. Configura las variables de entorno. Copia `.env.example` a `.env.local` y completa:
-   ```
-   EMAIL_USER=                 # Gmail para notificaciones
-   EMAIL_PASS=                 # App password de Gmail
-   SUPABASE_URL=               # Project Settings -> API -> Project URL
-   SUPABASE_SERVICE_ROLE_KEY=  # Project Settings -> API -> service_role (SECRETA)
-   JWT_SECRET=                 # Cadena larga y aleatoria para firmar sesiones admin
-   ```
-   > La `service_role key` es secreta y solo se usa en el backend. Nunca la
-   > expongas en el cliente ni la subas al repositorio.
+### 2. Crear tablas en Neon
 
-4. Ejecuta la app:
-   ```
-   npm run dev
-   ```
-   La app queda en `http://localhost:3000`.
+```
+psql $DATABASE_URL_UNPOOLED -f database/schema.sql
+psql $DATABASE_URL_UNPOOLED -f database/indexes.sql
+psql $DATABASE_URL_UNPOOLED -f database/migration_gdrive.sql
+```
+
+### 3. Variables de entorno
+
+Copia `.env.example` a `.env.local` y completa:
+
+```
+EMAIL_USER=                    # Gmail para notificaciones
+EMAIL_PASS=                    # App Password de Gmail
+DATABASE_URL=                  # Neon connection string (pooled)
+DATABASE_URL_UNPOOLED=         # Neon connection string (directo)
+JWT_SECRET=                    # Cadena aleatoria mínimo 32 chars
+GOOGLE_CLIENT_ID=              # OAuth 2.0 Client ID
+GOOGLE_CLIENT_SECRET=          # OAuth 2.0 Client Secret
+GOOGLE_REDIRECT_URI=           # https://tu-sitio.netlify.app/.netlify/functions/google-oauth-callback
+GOOGLE_REFRESH_TOKEN=          # Obtener con el flujo OAuth (ver abajo)
+GOOGLE_DRIVE_ROOT_FOLDER_ID=   # ID de carpeta Canal-Denuncias-ARH en Drive
+```
+
+### 4. Configurar Google Drive
+
+Consulta `GOOGLE_DRIVE_SETUP.md` para instrucciones detalladas.
+
+El flujo básico para obtener el refresh token:
+1. Configura las variables `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` en Netlify.
+2. Inicia sesión en el panel admin.
+3. Visita `/api/google-oauth`.
+4. Autoriza la app con tu cuenta Google.
+5. Copia el `GOOGLE_REFRESH_TOKEN` que aparece y guárdalo en Netlify.
+
+### 5. Ejecutar en desarrollo
+
+```
+npm run dev
+```
+
+La app queda en `http://localhost:3000`.
 
 ## Panel de administración
 
 - URL: `/admin/login`
-- Usuario por defecto: `admin` · Contraseña: `admin123`
+- Usuario por defecto: `adminrh` · Contraseña: `arhconsultores`
 
-El servidor crea el usuario admin por defecto la primera vez que se conecta a
-Supabase. **Cambia la contraseña antes de producción.**
+**Cambia la contraseña antes de usar en producción.**
 
 Desde el panel puedes:
-- **Folios**: listar, buscar, filtrar por estatus, ver el detalle de cada
-  denuncia y cambiar su estatus / agregar notas internas.
-- **Contenido**: editar los textos del sitio (título, subtítulo, aviso de
-  privacidad, pie de página, etc.) tipo CMS.
+- **Folios**: listar, buscar, filtrar por estatus, ver detalle, cambiar estatus y agregar notas.
+- **Contenido**: editar textos del sitio (CMS).
+- **Evidencias**: descargar archivos adjuntos de cada denuncia.
 
 ## Scripts
 
-- `npm run dev` — servidor de desarrollo (Express + Vite).
-- `npm run build` — build de producción a `dist/`.
-- `npm run lint` — verificación de tipos (`tsc --noEmit`).
+- `npm run dev` — servidor de desarrollo
+- `npm run build` — build de producción a `dist/`
+- `npm run lint` — verificación de tipos TypeScript
 
-## Despliegue
+## Documentación
 
-La capa de datos usa el cliente `@supabase/supabase-js` (API REST), por lo que
-funciona tanto en el servidor Express local como en entornos serverless
-(Netlify Functions). Recuerda definir las mismas variables de entorno en el
-proveedor de despliegue.
+| Archivo | Descripción |
+|---------|-------------|
+| `AUDIT_GOOGLE_DRIVE_MIGRATION.md` | Auditoría completa del proyecto |
+| `GOOGLE_DRIVE_SETUP.md` | Configuración paso a paso de Google Drive |
+| `DATABASE_MIGRATION_PLAN.md` | Plan de migración de la base de datos |
+| `ENVIRONMENT_VARIABLES.md` | Documentación de todas las variables |
+| `SECURITY_NOTES.md` | Notas de seguridad y vulnerabilidades |
+| `ROLLBACK_PLAN.md` | Plan de rollback por fase |

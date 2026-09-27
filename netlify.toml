@@ -32,17 +32,24 @@
   status = 200
   force = true
 
-# Upload de archivos a R2
+# Upload de archivos a Google Drive
 [[redirects]]
   from = "/api/upload-file"
   to = "/.netlify/functions/upload-file"
   status = 200
   force = true
 
-# Descarga de archivos desde R2 (signed URL)
+# Descarga de archivos desde Google Drive (proxy seguro)
 [[redirects]]
   from = "/api/get-file"
   to = "/.netlify/functions/get-file"
+  status = 200
+  force = true
+
+# Google OAuth — inicia flujo de autorización (requiere sesión admin)
+[[redirects]]
+  from = "/api/google-oauth"
+  to = "/.netlify/functions/google-oauth"
   status = 200
   force = true
 

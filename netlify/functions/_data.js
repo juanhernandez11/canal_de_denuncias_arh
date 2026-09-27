@@ -219,11 +219,21 @@ function extractDenunciaFields(body) {
 async function insertArchivoMeta(data) {
   const { rows } = await query(
     `INSERT INTO archivos_denuncia
-       (denuncia_folio, nombre_original, nombre_storage, mime_type, size_bytes, r2_key)
-     VALUES ($1, $2, $3, $4, $5, $6)
+       (denuncia_folio, nombre_original, nombre_storage, mime_type, size_bytes,
+        r2_key, google_drive_file_id, google_drive_folder_id, storage_provider)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      RETURNING *`,
-    [data.denuncia_folio, data.nombre_original, data.nombre_storage,
-     data.mime_type, data.size_bytes, data.r2_key]
+    [
+      data.denuncia_folio,
+      data.nombre_original,
+      data.nombre_storage,
+      data.mime_type,
+      data.size_bytes,
+      data.r2_key                  ?? null,
+      data.google_drive_file_id    ?? null,
+      data.google_drive_folder_id  ?? null,
+      data.storage_provider        ?? 'google_drive',
+    ]
   );
   return rows[0];
 }

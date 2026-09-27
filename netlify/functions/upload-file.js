@@ -1,14 +1,20 @@
 // netlify/functions/upload-file.js
-// Recibe un archivo en base64 desde el frontend y lo sube a Cloudflare R2.
+// Recibe un archivo en base64 desde el frontend y lo sube a Google Drive.
+// Mantiene la misma interfaz que la versión R2 anterior.
 // Solo acepta llamadas durante el flujo de envío de denuncia (no requiere auth admin).
-// El folio se genera en send-email.js y se pasa junto con el archivo.
+//
+// IMPORTANTE:
+// - Todas las operaciones con Drive son server-side.
+// - Los archivos se suben a carpetas privadas del Drive del admin.
+// - Se guarda metadata en Neon (google_drive_file_id, google_drive_folder_id).
+// - Nunca se exponen IDs de Drive directamente en la respuesta al usuario.
 'use strict';
 
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { getOrCreateComplaintFolder, uploadFile } = require('./lib/googleDrive');
 const { insertArchivoMeta } = require('./_data');
 const crypto = require('crypto');
 
-// Tipos MIME permitidos
+// Tipos MIME permitidos (allowlist — no expandir sin revisión de seguridad)
 const ALLOWED_MIME = new Set([
   'application/pdf',
   'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
@@ -19,22 +25,14 @@ const ALLOWED_MIME = new Set([
   'text/plain',
 ]);
 
-const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+// NOTA: Netlify Functions tiene límite de 6MB de body (base64 de un archivo de 4.5MB ~ 6MB).
+// Si se necesitan archivos más grandes, usar un flujo de upload directo diferente.
+const MAX_SIZE_BYTES = 4 * 1024 * 1024; // 4MB para dejar margen con el encoding base64
 
-function getR2Client() {
-  const accountId  = process.env.R2_ACCOUNT_ID;
-  const accessKey  = process.env.R2_ACCESS_KEY_ID;
-  const secretKey  = process.env.R2_SECRET_ACCESS_KEY;
-  if (!accountId || !accessKey || !secretKey) {
-    throw new Error('[upload-file] Faltan variables R2_ACCOUNT_ID, R2_ACCESS_KEY_ID o R2_SECRET_ACCESS_KEY');
-  }
-  return new S3Client({
-    region: 'auto',
-    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-    credentials: { accessKeyId: accessKey, secretAccessKey: secretKey },
-  });
-}
-
+/**
+ * Sanitiza el nombre del archivo eliminando caracteres peligrosos.
+ * Previene path traversal y nombres maliciosos.
+ */
 function sanitizeFilename(name) {
   return name
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quitar acentos
@@ -51,62 +49,85 @@ exports.handler = async (event) => {
   try {
     const { folio, nombre, mime_type, data } = JSON.parse(event.body || '{}');
 
-    // Validaciones
+    // --- Validaciones server-side ---
+
+    // Folio: formato estricto ARH-YYYY-XXXXX
     if (!folio || typeof folio !== 'string' || !/^ARH-\d{4}-[A-Z0-9]{5}$/.test(folio)) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Folio inválido' }) };
     }
-    if (!nombre || typeof nombre !== 'string') {
+
+    // Nombre de archivo requerido
+    if (!nombre || typeof nombre !== 'string' || nombre.trim().length === 0) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Nombre de archivo requerido' }) };
     }
+
+    // MIME type: allowlist estricta
     if (!ALLOWED_MIME.has(mime_type)) {
       return { statusCode: 400, body: JSON.stringify({ error: `Tipo de archivo no permitido: ${mime_type}` }) };
     }
+
+    // Datos del archivo requeridos
     if (!data || typeof data !== 'string') {
       return { statusCode: 400, body: JSON.stringify({ error: 'Datos del archivo requeridos' }) };
     }
 
-    // Decodificar base64 (puede venir como data URL o base64 puro)
+    // Decodificar base64 (acepta data URL o base64 puro)
     const base64Data = data.includes(',') ? data.split(',')[1] : data;
-    const buffer = Buffer.from(base64Data, 'base64');
 
-    if (buffer.length > MAX_SIZE_BYTES) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'Archivo demasiado grande (máx 10MB)' }) };
+    // Validar que sea base64 válido
+    if (!/^[A-Za-z0-9+/=]+$/.test(base64Data.replace(/\s/g, ''))) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'Datos del archivo con formato inválido' }) };
     }
 
-    // Generar key única y segura — NUNCA usa el nombre del usuario directamente como path
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    // Archivo vacío
+    if (buffer.length === 0) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'El archivo está vacío' }) };
+    }
+
+    // Tamaño máximo
+    if (buffer.length > MAX_SIZE_BYTES) {
+      return { statusCode: 400, body: JSON.stringify({ error: `Archivo demasiado grande (máx ${MAX_SIZE_BYTES / 1024 / 1024}MB)` }) };
+    }
+
+    // Nombre de archivo seguro + uuid para evitar colisiones e idempotencia
     const uuid = crypto.randomUUID();
     const safeNombre = sanitizeFilename(nombre);
-    const r2Key = `denuncias/${folio}/${uuid}-${safeNombre}`;
+    const storageFilename = `${uuid}-${safeNombre}`;
 
-    // Subir a R2
-    const client = getR2Client();
-    const bucket = process.env.R2_BUCKET_NAME;
-    if (!bucket) throw new Error('[upload-file] Falta R2_BUCKET_NAME');
+    // 1. Obtener o crear carpeta del folio en Drive (idempotente)
+    const folderId = await getOrCreateComplaintFolder(folio);
 
-    await client.send(new PutObjectCommand({
-      Bucket: bucket,
-      Key: r2Key,
-      Body: buffer,
-      ContentType: mime_type,
-      Metadata: { folio, nombre_original: nombre },
-    }));
-
-    // Guardar metadata en Neon
-    const registro = await insertArchivoMeta({
-      denuncia_folio:  folio,
-      nombre_original: nombre,
-      nombre_storage:  safeNombre,
-      mime_type,
-      size_bytes:      buffer.length,
-      r2_key:          r2Key,
+    // 2. Subir archivo a Drive
+    const { fileId } = await uploadFile({
+      folio,
+      folderId,
+      buffer,
+      mimeType: mime_type,
+      storageFilename,
+      originalName: nombre,
     });
 
-    console.log(`[upload-file] Archivo subido: ${r2Key} (${buffer.length} bytes)`);
+    // 3. Guardar metadata en Neon
+    const registro = await insertArchivoMeta({
+      denuncia_folio:           folio,
+      nombre_original:          nombre,
+      nombre_storage:           storageFilename,
+      mime_type,
+      size_bytes:               buffer.length,
+      r2_key:                   null,                  // No aplica — storage es Drive
+      google_drive_file_id:     fileId,
+      google_drive_folder_id:   folderId,
+      storage_provider:         'google_drive',
+    });
+
+    console.log(`[upload-file] Archivo subido a Drive: ${fileId} para folio ${folio} (${buffer.length} bytes)`);
 
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ok: true, id: registro.id, r2_key: r2Key }),
+      body: JSON.stringify({ ok: true, id: registro.id }),
     };
 
   } catch (err) {

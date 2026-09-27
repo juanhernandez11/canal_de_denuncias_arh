@@ -4,7 +4,6 @@
     "pg": "^8.13.3",
     "jsonwebtoken": "^9.0.2",
     "bcryptjs": "^2.4.3",
-    "@aws-sdk/client-s3": "^3.731.0",
-    "@aws-sdk/s3-request-presigner": "^3.731.0"
+    "googleapis": "^144.0.0"
   }
 }
