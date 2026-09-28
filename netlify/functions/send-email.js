@@ -117,12 +117,15 @@ exports.handler = async (event) => {
       });
     }
 
-    // Persistir la denuncia en Neon (no rompe el flujo si falla — el folio ya fue enviado)
+    // Persistir la denuncia en Neon (no rompe el flujo — el folio ya fue enviado por email)
     try {
-      const body = JSON.parse(event.body);
-      await insertDenuncia({ folio, ...extractDenunciaFields(body) });
+      const parsedBody = JSON.parse(event.body);
+      await insertDenuncia({ folio, ...extractDenunciaFields(parsedBody) });
+      console.log(`[send-email] Denuncia persistida en Neon: ${folio}`);
     } catch (dbError) {
-      console.error('Error persistiendo denuncia en Neon (folio enviado):', dbError);
+      // Log detallado para diagnosticar en Netlify Functions log
+      console.error(`[send-email] ERROR persistiendo ${folio} en Neon:`, dbError?.message || dbError);
+      console.error('[send-email] DATABASE_URL definida:', !!process.env.DATABASE_URL);
     }
 
     return {
