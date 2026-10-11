@@ -14,29 +14,38 @@ import ChangePasswordPage from './admin/pages/ChangePasswordPage';
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Toaster position="top-right" />
-        <Routes>
-          <Route path="/" element={<Wizard />} />
-          <Route path="/tracking" element={<TrackingSearch />} />
-          <Route path="/tracking/:folio" element={<Tracking />} />
+      <Toaster position="top-right" />
+      <Routes>
+        {/* Rutas públicas — sin AuthProvider */}
+        <Route path="/" element={<Wizard />} />
+        <Route path="/tracking" element={<TrackingSearch />} />
+        <Route path="/tracking/:folio" element={<Tracking />} />
 
-          <Route path="/admin/login" element={<LoginPage />} />
-          <Route
-            path="/admin"
-            element={
-              <RequireAuth>
-                <AdminLayout />
-              </RequireAuth>
-            }
-          >
-            <Route index element={<Navigate to="/admin/folios" replace />} />
-            <Route path="folios" element={<FoliosPage />} />
-            <Route path="contenido" element={<ContenidoPage />} />
-            <Route path="password" element={<ChangePasswordPage />} />
-          </Route>
-        </Routes>
-      </AuthProvider>
+        {/* Rutas admin — AuthProvider solo aquí */}
+        <Route
+          path="/admin/*"
+          element={
+            <AuthProvider>
+              <Routes>
+                <Route path="login" element={<LoginPage />} />
+                <Route
+                  path="/*"
+                  element={
+                    <RequireAuth>
+                      <AdminLayout />
+                    </RequireAuth>
+                  }
+                >
+                  <Route index element={<Navigate to="/admin/folios" replace />} />
+                  <Route path="folios" element={<FoliosPage />} />
+                  <Route path="contenido" element={<ContenidoPage />} />
+                  <Route path="password" element={<ChangePasswordPage />} />
+                </Route>
+              </Routes>
+            </AuthProvider>
+          }
+        />
+      </Routes>
     </BrowserRouter>
   );
 }
