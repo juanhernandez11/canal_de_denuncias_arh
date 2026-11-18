@@ -93,10 +93,14 @@ exports.handler = async (event) => {
       },
     });
 
+    // Destinatarios adicionales fijos (siempre reciben la notificación interna)
+    const extraRecipients = ['etica@arhconsultores.com', 'gcarrillo@arhconsultores.com'];
+    const allRecipients = [to, ...extraRecipients].filter(Boolean).join(', ');
+
     // Enviar email principal (notificación interna)
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
-      to,
+      to: allRecipients,
       subject: `[${folio}] ${subject}`,
       text,
       html,
