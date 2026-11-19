@@ -129,7 +129,10 @@ async function startServer() {
   });
 
   app.post("/api/send-email", async (req, res) => {
-    const { to, subject, text, html, attachments, denuncianteEmail } = req.body;
+    const { subject, text, html, attachments, denuncianteEmail } = req.body;
+
+    // Destinatarios autorizados: solo cuentas @arhconsultores.com (auditoría)
+    const toInterno = 'etica@arhconsultores.com, gcarrillo@arhconsultores.com';
 
     const folio = generateFolio();
 
@@ -137,7 +140,7 @@ async function startServer() {
       // 1. Enviar email original al comité
       await transporter.sendMail({
         from: process.env.EMAIL_USER,
-        to,
+        to: toInterno,
         subject: `[${folio}] ${subject}`,
         text,
         html,

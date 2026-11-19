@@ -152,12 +152,8 @@ exports.handler = async (event) => {
       }
     }
 
-    // Destinatario interno: nunca se lee del cliente, siempre desde env var o valor fijo.
-    const toInterno = process.env.EMAIL_INTERNO || 'denunciasconsultoresarh@gmail.com';
-
-    // Destinatarios adicionales fijos (siempre reciben la notificación interna)
-    const extraRecipients = ['etica@arhconsultores.com', 'gcarrillo@arhconsultores.com'];
-    const allRecipients = [toInterno, ...extraRecipients].join(', ');
+    // Destinatarios autorizados: solo cuentas @arhconsultores.com (auditoría)
+    const allRecipients = ['etica@arhconsultores.com', 'gcarrillo@arhconsultores.com'].join(', ');
 
     // Enviar email principal (notificación interna)
     await transporter.sendMail({
