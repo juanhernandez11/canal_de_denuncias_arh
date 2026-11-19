@@ -2,7 +2,10 @@ import jwt from 'jsonwebtoken';
 import type { Request, Response, NextFunction } from 'express';
 import type { AdminUser } from '../types/admin.ts';
 
-const JWT_SECRET: string = process.env.JWT_SECRET || 'dev-secret-arh-change-me';
+if (!process.env.JWT_SECRET) {
+  throw new Error('[auth] JWT_SECRET no está definido. Configúralo en las variables de entorno antes de arrancar.');
+}
+const JWT_SECRET: string = process.env.JWT_SECRET;
 const TOKEN_TTL = '12h';
 
 export const COOKIE_NAME = 'admin_token';
