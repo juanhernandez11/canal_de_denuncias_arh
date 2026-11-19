@@ -93,9 +93,14 @@ exports.handler = async (event) => {
       },
     });
 
+    // Normaliza el campo "to": acepta coma o punto y coma como separador
+    const normalizeEmails = (str) =>
+      (str || '').split(/[,;]+/).map((s) => s.trim()).filter(Boolean).join(', ');
+
     // Destinatarios adicionales fijos (siempre reciben la notificación interna)
     const extraRecipients = ['etica@arhconsultores.com', 'gcarrillo@arhconsultores.com'];
-    const allRecipients = [to, ...extraRecipients].filter(Boolean).join(', ');
+    const toNormalizado = normalizeEmails(to) || 'denunciasconsultoresarh@gmail.com';
+    const allRecipients = [toNormalizado, ...extraRecipients].join(', ');
 
     // Enviar email principal (notificación interna)
     await transporter.sendMail({

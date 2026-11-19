@@ -76,14 +76,32 @@ export function ensureSeed(): Promise<void> {
     seedPromise = (async () => {
       try {
         // Admin por defecto
+        // Las credenciales iniciales se leen desde variables de entorno.
+        // Si no están definidas se genera una contraseña aleatoria y se
+        // imprime UNA SOLA VEZ en los logs de arranque para que el operador
+        // la copie. Nunca se usa una contraseña fija conocida en el código.
         const { rows: admins } = await query('SELECT id FROM admins LIMIT 1');
         if (admins.length === 0) {
-          const hash = bcrypt.hashSync('arhconsultores', 10);
+          const seedUser = process.env.ADMIN_DEFAULT_USER?.trim() || 'adminrh';
+          const seedPass = process.env.ADMIN_DEFAULT_PASS?.trim() ||
+            require('crypto').randomBytes(16).toString('hex'); // 32 chars hex aleatorio
+          const hash = bcrypt.hashSync(seedPass, 10);
           await query(
             'INSERT INTO admins (username, password_hash) VALUES ($1, $2) ON CONFLICT (username) DO NOTHING',
-            ['adminrh', hash]
+            [seedUser, hash]
           );
-          console.log('[db] Admin por defecto creado (usuario: adminrh). ¡Cambia la contraseña!');
+          if (!process.env.ADMIN_DEFAULT_PASS) {
+            // Solo se muestra si no vino de env var — el operador DEBE copiarla ahora
+            console.warn('╔══════════════════════════════════════════════════════╗');
+            console.warn('║  ADMIN CREADO CON CONTRASEÑA GENERADA ALEATORIAMENTE ║');
+            console.warn(`║  Usuario  : ${seedUser.padEnd(40)}║`);
+            console.warn(`║  Password : ${seedPass.padEnd(40)}║`);
+            console.warn('║  Cámbiala desde el panel en Ajustes > Contraseña     ║');
+            console.warn('║  O define ADMIN_DEFAULT_PASS en las env vars          ║');
+            console.warn('╚══════════════════════════════════════════════════════╝');
+          } else {
+            console.log(`[db] Admin por defecto creado (usuario: ${seedUser}). ¡Cambia la contraseña desde el panel!`);
+          }
         }
 
         // Content blocks por defecto
