@@ -19,13 +19,32 @@ import {
 import { ESTATUS_LABELS, type EstatusFolio } from '../types/admin.ts';
 import { sendEstatusEmail } from './mail.ts';
 
-const isProd = process.env.NODE_ENV === 'production';
+// ---------------------------------------------------------------------------
+// Rate limiting en memoria para /api/admin/login (protección fuerza bruta).
+// ---------------------------------------------------------------------------
+const LOGIN_WINDOW_MS = 15 * 60_000; // ventana de 15 minutos
+const MAX_LOGIN_ATTEMPTS = 10;        // máximo 10 intentos por IP por ventana
+const loginAttempts = new Map<string, { count: number; start: number }>();
 
-function cookieOptions() {
+function checkLoginRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = loginAttempts.get(ip) ?? { count: 0, start: now };
+  if (now - entry.start > LOGIN_WINDOW_MS) {
+    loginAttempts.set(ip, { count: 1, start: now });
+    return true;
+  }
+  if (entry.count >= MAX_LOGIN_ATTEMPTS) return false;
+  loginAttempts.set(ip, { count: entry.count + 1, start: entry.start });
+  return true;
+}
+
+function cookieOptions(req: Request) {
+  const isHttps =
+    req.secure || req.headers['x-forwarded-proto'] === 'https';
   return {
     httpOnly: true,
     sameSite: 'lax' as const,
-    secure: isProd,
+    secure: isHttps,
     path: '/',
     maxAge: 12 * 60 * 60 * 1000, // 12h
   };
@@ -39,6 +58,16 @@ export function registerAdminRoutes(app: Express): void {
   // -------------------------------------------------------------------------
   app.post('/api/admin/login', async (req: Request, res: Response) => {
     try {
+      // Rate limiting por IP
+      const clientIp =
+        (req.headers['x-forwarded-for'] as string)?.split(',')[0].trim() ||
+        req.ip ||
+        'unknown';
+      if (!checkLoginRateLimit(clientIp)) {
+        res.status(429).json({ error: 'Demasiados intentos. Intenta de nuevo en 15 minutos.' });
+        return;
+      }
+
       const { username, password } = req.body ?? {};
       if (typeof username !== 'string' || typeof password !== 'string') {
         res.status(400).json({ error: 'Credenciales inválidas' });
@@ -50,7 +79,7 @@ export function registerAdminRoutes(app: Express): void {
         return;
       }
       const token = signToken({ username: admin.username });
-      res.cookie(COOKIE_NAME, token, cookieOptions());
+      res.cookie(COOKIE_NAME, token, cookieOptions(req));
       res.json({ ok: true, user: { username: admin.username } });
     } catch (err) {
       console.error('[login]', err);

@@ -1,6 +1,27 @@
 const nodemailer = require('nodemailer');
 const { insertDenuncia, extractDenunciaFields } = require('./_data');
 
+// ---------------------------------------------------------------------------
+// Rate limiting en memoria (por IP). No persiste entre instancias de Lambda,
+// pero limita ráfagas cortas que son el caso de abuso más común.
+// Para producción de alto volumen, reemplazar con @upstash/ratelimit + Redis.
+// ---------------------------------------------------------------------------
+const RATE_WINDOW_MS = 60_000; // ventana de 1 minuto
+const MAX_PER_WINDOW = 5;      // máximo 5 envíos por IP por ventana
+const ipCounts = new Map();
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const entry = ipCounts.get(ip) || { count: 0, start: now };
+  if (now - entry.start > RATE_WINDOW_MS) {
+    ipCounts.set(ip, { count: 1, start: now });
+    return true;
+  }
+  if (entry.count >= MAX_PER_WINDOW) return false;
+  ipCounts.set(ip, { count: entry.count + 1, start: entry.start });
+  return true;
+}
+
 // MIGRADO: folio generado con crypto.randomBytes (criptográficamente seguro)
 function generarFolio() {
   const year  = new Date().getFullYear();
@@ -80,8 +101,20 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
+  // Rate limiting por IP
+  const clientIp =
+    event.headers?.['x-forwarded-for']?.split(',')[0].trim() ||
+    event.headers?.['client-ip'] ||
+    'unknown';
+  if (!checkRateLimit(clientIp)) {
+    return {
+      statusCode: 429,
+      body: JSON.stringify({ error: 'Demasiadas solicitudes. Intenta de nuevo en un minuto.' }),
+    };
+  }
+
   try {
-    const { to, subject, text, html, attachments, denuncianteEmail } = JSON.parse(event.body);
+    const { subject, text, html, attachments, denuncianteEmail } = JSON.parse(event.body);
 
     const folio = generarFolio();
 
@@ -93,14 +126,12 @@ exports.handler = async (event) => {
       },
     });
 
-    // Normaliza el campo "to": acepta coma o punto y coma como separador
-    const normalizeEmails = (str) =>
-      (str || '').split(/[,;]+/).map((s) => s.trim()).filter(Boolean).join(', ');
+    // Destinatario interno: nunca se lee del cliente, siempre desde env var o valor fijo.
+    const toInterno = process.env.EMAIL_INTERNO || 'denunciasconsultoresarh@gmail.com';
 
     // Destinatarios adicionales fijos (siempre reciben la notificación interna)
     const extraRecipients = ['etica@arhconsultores.com', 'gcarrillo@arhconsultores.com'];
-    const toNormalizado = normalizeEmails(to) || 'denunciasconsultoresarh@gmail.com';
-    const allRecipients = [toNormalizado, ...extraRecipients].join(', ');
+    const allRecipients = [toInterno, ...extraRecipients].join(', ');
 
     // Enviar email principal (notificación interna)
     await transporter.sendMail({
