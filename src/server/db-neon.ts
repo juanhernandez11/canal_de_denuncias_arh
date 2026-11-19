@@ -7,6 +7,7 @@
  */
 import bcrypt from 'bcryptjs';
 import { query } from './db-client.ts';
+import { encrypt, decrypt } from './crypto.ts';
 import type {
   ContentBlock,
   Denuncia,
@@ -181,7 +182,7 @@ export async function insertDenuncia(
       data.denunciante_nombre ?? null,
       data.denunciante_correo ?? null,
       data.descripcion ?? null,
-      data.payload_json ?? null,
+      encrypt(data.payload_json ?? null),  // cifrado en reposo (M-02)
     ]
   );
   return rows[0];
@@ -192,7 +193,7 @@ export async function listDenuncias(
 ): Promise<ListDenunciasResult> {
   await ensureSeed();
   const page = Math.max(1, filters.page ?? 1);
-  const pageSize = Math.min(100, Math.max(1, filters.pageSize ?? 20));
+  const pageSize = Math.min(50, Math.max(1, filters.pageSize ?? 20));
   const offset = (page - 1) * pageSize;
 
   const params: unknown[] = [];
@@ -242,7 +243,13 @@ export async function getDenuncia(
     'SELECT * FROM denuncias WHERE folio = $1',
     [folio]
   );
-  return rows[0];
+  if (!rows[0]) return undefined;
+  const row = rows[0];
+  // Descifra payload_json en reposo (M-02); soporta registros legacy en texto plano
+  if (row.payload_json) {
+    row.payload_json = decrypt(row.payload_json);
+  }
+  return row;
 }
 
 export async function updateDenuncia(

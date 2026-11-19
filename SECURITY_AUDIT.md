@@ -212,16 +212,17 @@ const pageSize = Math.min(100, Math.max(1, filters.pageSize ?? 20));
 
 ## Plan de remediación priorizado
 
-| Prioridad | ID | Acción | Esfuerzo |
-|---|---|---|---|
-| 1 | C-01 | Eliminar fallback de JWT_SECRET | 5 min |
-| 2 | C-02 | Leer credenciales del seed desde env vars o forzar cambio en 1er login | 1 h |
-| 3 | A-01 | Implementar rate limiting en send-email y login | 2–4 h |
-| 4 | A-02 | Ignorar `to` del cliente, leer desde BD server-side | 1 h |
-| 5 | M-01 | Agregar cabeceras de seguridad en `netlify.toml` | 30 min |
-| 6 | M-03 | Validar tipo y tamaño de adjuntos | 1 h |
-| 7 | A-03 | Corregir flag `secure` en cookies | 15 min |
-| 8 | M-02 | Cifrar `payload_json` en reposo | 4–8 h |
+| Prioridad | ID | Acción | Esfuerzo | Estado |
+|---|---|---|---|---|
+| 1 | C-01 | Eliminar fallback de JWT_SECRET | 5 min | ✅ Resuelto |
+| 2 | C-02 | Leer credenciales del seed desde env vars | 1 h | ✅ Resuelto |
+| 3 | A-01 | Rate limiting en send-email y login | 2–4 h | ✅ Resuelto |
+| 4 | A-02 | Ignorar `to` del cliente, leer desde env var | 1 h | ✅ Resuelto |
+| 5 | M-01 | Cabeceras de seguridad en `netlify.toml` | 30 min | ✅ Resuelto |
+| 6 | M-03 | Validar tipo y tamaño de adjuntos | 1 h | ✅ Resuelto |
+| 7 | A-03 | Corregir flag `secure` en cookies | 15 min | ✅ Resuelto |
+| 8 | M-02 | Cifrar `payload_json` en reposo (AES-256-GCM) | 4–8 h | ✅ Resuelto |
+| 9 | M-04 | Reducir pageSize máximo a 50 | 5 min | ✅ Resuelto |
 
 ---
 

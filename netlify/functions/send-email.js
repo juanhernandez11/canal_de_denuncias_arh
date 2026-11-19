@@ -126,6 +126,31 @@ exports.handler = async (event) => {
       },
     });
 
+    // Validación de adjuntos: tipo MIME y tamaño (M-03)
+    const MAX_ATTACHMENT_BYTES = 2 * 1024 * 1024; // 2 MB
+    const ALLOWED_MIME = [
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'application/pdf', 'text/plain',
+    ];
+    for (const a of (attachments || [])) {
+      const mimeMatch = (a.data || '').match(/^data:([^;]+);base64,/);
+      if (!mimeMatch || !ALLOWED_MIME.includes(mimeMatch[1])) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ error: `Tipo de archivo no permitido: ${mimeMatch?.[1] ?? 'desconocido'}` }),
+        };
+      }
+      // Tamaño aproximado decodificado
+      const base64Data = a.data.split(',')[1] || '';
+      const sizeBytes = Math.ceil((base64Data.length * 3) / 4);
+      if (sizeBytes > MAX_ATTACHMENT_BYTES) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ error: `Archivo demasiado grande (máximo 2 MB): ${a.name}` }),
+        };
+      }
+    }
+
     // Destinatario interno: nunca se lee del cliente, siempre desde env var o valor fijo.
     const toInterno = process.env.EMAIL_INTERNO || 'denunciasconsultoresarh@gmail.com';
 
