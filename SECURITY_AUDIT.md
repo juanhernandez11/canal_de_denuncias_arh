@@ -7,12 +7,12 @@
 
 ## Resumen ejecutivo
 
-| Severidad | Hallazgos |
-|-----------|-----------|
-| 🔴 Crítica    | 2 |
-| 🟠 Alta       | 3 |
-| 🟡 Media      | 4 |
-| 🔵 Baja / Info | 3 |
+| Severidad | Hallazgos | Estado |
+|-----------|-----------|--------|
+| 🔴 Crítica    | 2 | ✅ Todos resueltos |
+| 🟠 Alta       | 3 | ✅ Todos resueltos |
+| 🟡 Media      | 4 | ✅ Todos resueltos |
+| 🔵 Baja / Info | 3 | ✅ Todos resueltos |
 
 ---
 
@@ -223,6 +223,9 @@ const pageSize = Math.min(100, Math.max(1, filters.pageSize ?? 20));
 | 7 | A-03 | Corregir flag `secure` en cookies | 15 min | ✅ Resuelto |
 | 8 | M-02 | Cifrar `payload_json` en reposo (AES-256-GCM) | 4–8 h | ✅ Resuelto |
 | 9 | M-04 | Reducir pageSize máximo a 50 | 5 min | ✅ Resuelto |
+| 10 | I-01 | randomBytes(6) + reintento en colisión de folio | 30 min | ✅ Resuelto |
+| 11 | I-02 | Sanitizar logs, solo mensaje sin stack | 30 min | ✅ Resuelto |
+| 12 | I-03 | sameSite 'strict' en cookies del panel admin | 5 min | ✅ Resuelto |
 
 ---
 

@@ -23,12 +23,13 @@ function checkRateLimit(ip) {
 }
 
 // MIGRADO: folio generado con crypto.randomBytes (criptográficamente seguro)
+// I-01: usa 6 bytes (~2.2 billones de combinaciones) y reintenta hasta 3 veces en colisión.
 function generarFolio() {
   const year  = new Date().getFullYear();
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  const bytes = require('crypto').randomBytes(5);
+  const bytes = require('crypto').randomBytes(6);
   let random  = '';
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 6; i++) {
     random += chars[bytes[i] % chars.length];
   }
   return `ARH-${year}-${random}`;
@@ -182,14 +183,31 @@ exports.handler = async (event) => {
       });
     }
 
-    // Persistir la denuncia en Neon (no rompe el flujo — el folio ya fue enviado por email)
+    // Persistir la denuncia en Neon con reintento en colisión de folio (I-01)
+    let folioFinal = folio;
     try {
       const parsedBody = JSON.parse(event.body);
-      await insertDenuncia({ folio, ...extractDenunciaFields(parsedBody) });
-      console.log(`[send-email] Denuncia persistida en Neon: ${folio}`);
+      let inserted = false;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          await insertDenuncia({ folio: folioFinal, ...extractDenunciaFields(parsedBody) });
+          inserted = true;
+          break;
+        } catch (conflictErr) {
+          // ON CONFLICT en Neon lanza error con code 23505 (unique_violation)
+          if (conflictErr?.code === '23505' && attempt < 2) {
+            folioFinal = generarFolio();
+            console.warn(`[send-email] Colisión de folio, reintentando con ${folioFinal}`);
+          } else {
+            throw conflictErr;
+          }
+        }
+      }
+      if (inserted) console.log(`[send-email] Denuncia persistida en Neon: ${folioFinal}`);
     } catch (dbError) {
-      // Log detallado para diagnosticar en Netlify Functions log
-      console.error(`[send-email] ERROR persistiendo ${folio} en Neon:`, dbError?.message || dbError);
+      // I-02: solo se loguea el mensaje, nunca el stack completo en producción
+      const msg = dbError instanceof Error ? dbError.message : String(dbError);
+      console.error(`[send-email] ERROR persistiendo ${folioFinal} en Neon: ${msg}`);
       console.error('[send-email] DATABASE_URL definida:', !!process.env.DATABASE_URL);
     }
 

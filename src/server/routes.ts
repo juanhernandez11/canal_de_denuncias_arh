@@ -43,11 +43,16 @@ function cookieOptions(req: Request) {
     req.secure || req.headers['x-forwarded-proto'] === 'https';
   return {
     httpOnly: true,
-    sameSite: 'lax' as const,
+    sameSite: 'strict' as const,  // I-03: 'strict' para panel admin
     secure: isHttps,
     path: '/',
     maxAge: 12 * 60 * 60 * 1000, // 12h
   };
+}
+
+/** Extrae solo el mensaje de un error, nunca el stack (I-02). */
+function errMsg(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
 }
 
 const VALID_ESTATUS = Object.keys(ESTATUS_LABELS) as EstatusFolio[];
@@ -82,7 +87,7 @@ export function registerAdminRoutes(app: Express): void {
       res.cookie(COOKIE_NAME, token, cookieOptions(req));
       res.json({ ok: true, user: { username: admin.username } });
     } catch (err) {
-      console.error('[login]', err);
+      console.error('[login]', errMsg(err));
       res.status(500).json({ error: 'Error del servidor' });
     }
   });
@@ -115,7 +120,7 @@ export function registerAdminRoutes(app: Express): void {
       await updateAdminPassword(req.admin!.username, newPassword);
       res.json({ ok: true });
     } catch (err) {
-      console.error('[password:change]', err);
+      console.error('[password:change]', errMsg(err));
       res.status(500).json({ error: 'Error al cambiar la contraseña' });
     }
   });
@@ -137,7 +142,7 @@ export function registerAdminRoutes(app: Express): void {
         });
         res.json(result);
       } catch (err) {
-        console.error('[folios:list]', err);
+        console.error('[folios:list]', errMsg(err));
         res.status(500).json({ error: 'Error al listar folios' });
       }
     }
@@ -163,7 +168,7 @@ export function registerAdminRoutes(app: Express): void {
         }
         res.json({ ...denuncia, payload });
       } catch (err) {
-        console.error('[folios:detail]', err);
+        console.error('[folios:detail]', errMsg(err));
         res.status(500).json({ error: 'Error al obtener el folio' });
       }
     }
@@ -220,7 +225,7 @@ export function registerAdminRoutes(app: Express): void {
         }
         res.json({ ...updated, notificado });
       } catch (err) {
-        console.error('[folios:patch]', err);
+        console.error('[folios:patch]', errMsg(err));
         res.status(500).json({ error: 'Error al actualizar el folio' });
       }
     }
@@ -236,7 +241,7 @@ export function registerAdminRoutes(app: Express): void {
       try {
         res.json(await listContentBlocks());
       } catch (err) {
-        console.error('[content:list]', err);
+        console.error('[content:list]', errMsg(err));
         res.status(500).json({ error: 'Error al listar contenido' });
       }
     }
@@ -259,7 +264,7 @@ export function registerAdminRoutes(app: Express): void {
         }
         res.json(updated);
       } catch (err) {
-        console.error('[content:put]', err);
+        console.error('[content:put]', errMsg(err));
         res.status(500).json({ error: 'Error al actualizar contenido' });
       }
     }
@@ -272,7 +277,7 @@ export function registerAdminRoutes(app: Express): void {
     try {
       res.json(await getContentMap());
     } catch (err) {
-      console.error('[content:public]', err);
+      console.error('[content:public]', errMsg(err));
       res.status(500).json({ error: 'Error al obtener contenido' });
     }
   });
@@ -289,7 +294,7 @@ export function registerAdminRoutes(app: Express): void {
       }
       res.json(status);
     } catch (err) {
-      console.error('[folios:status]', err);
+      console.error('[folios:status]', errMsg(err));
       res.status(500).json({ error: 'Error al obtener el estatus' });
     }
   });
